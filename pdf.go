@@ -103,6 +103,10 @@ type stdPdfSurface struct {
 	pdfOut io.Writer 
 }
 
+func (ps *stdPdfSurface) GetStandardSurface() *stdSurface {
+	return ps.stdSurface
+}
+
 func (ps *stdPdfSurface) Finalize(x interface{}) {
 	ps.pdfOut = nil
 }

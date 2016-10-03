@@ -83,6 +83,10 @@ type Surface interface {
 	SupportsMimeType(mimeType MimeType) bool
 }
 
+type StandardSurface interface {
+	GetStandardSurface() *stdSurface
+}
+
 type SurfaceType uint32
 const (
 	SurfaceTypeImage		SurfaceType		= C.CAIRO_SURFACE_TYPE_IMAGE
@@ -152,6 +156,10 @@ func blessSurface(hnd *C.cairo_surface_t, addRef bool) Surface {
 		s.hnd = C.cairo_surface_reference(s.hnd)
 	}
 	runtime.SetFinalizer(s, destroySurface)
+	return s
+}
+
+func (s *stdSurface) GetStandardSurface() *stdSurface {
 	return s
 }
 

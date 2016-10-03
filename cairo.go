@@ -146,6 +146,27 @@ type Cairo interface {
 	ShowPage()
 	SetUserData(key string, data interface{})
 	GetUserData(key string) (interface{},bool)
+	///
+	CopyPath() Path
+	CopyPathFlat() Path
+	AppendPath(p Path)
+	HasCurrentPoint() bool
+	GetCurrentPoint() (float64, float64)
+	NewPath()
+	NewSubPath()
+	ClosePath()
+	Arc(xc, yc, radius, t1, t2 float64)
+	ArcNegative(xc, yc, radius, t1, t2 float64)
+	CurveTo(x1, y1, x2, y2, x3, y3 float64)
+	LineTo(x, y float64)
+	MoveTo(x, y float64)
+	Rectangle(x, y, width, height float64)
+	GlyphPath(glyphs []Glyph)
+	TextPath(text string)
+	RelCurveTo(dx1, dy1, dx2, dy2, dx3, dy3 float64)
+	RelLineTo(dx, dy float64)
+	RelMoveTo(dx, dy float64)
+	PathExtents() []float64
 }
 
 type stdCairo struct {
@@ -172,6 +193,14 @@ func blessCairo(hnd *C.cairo_t, addRef bool) Cairo {
 	}
 	runtime.SetFinalizer(c, destroyCairo)
 	return c
+}
+
+func Create(s Surface) Cairo {
+	if ss, ok := s.(StandardSurface); ok {
+		return blessCairo(C.cairo_create(ss.GetStandardSurface().hnd),false)
+	} else {
+		panic("Create(s) unsupported for non-standard surface arguments")
+	}
 }
 
 func (sc *stdCairo) Status() Status {
@@ -454,4 +483,93 @@ func (sc *stdCairo) GetUserData(key string) (interface{},bool) {
 	userdata := sc.userdata_r.Ref().(map[string]interface{})
 	val, has := userdata[key]
 	return val, has
+}
+
+func (sc *stdCairo) CopyPath() Path {
+	return blessPath(C.cairo_copy_path(sc.hnd))	
+}
+
+func (sc *stdCairo) CopyPathFlat() Path {
+	return blessPath(C.cairo_copy_path_flat(sc.hnd))
+}
+
+func (sc *stdCairo) AppendPath(p Path) {
+	if sp, ok := p.(*stdPath); ok {
+		C.cairo_append_path(sc.hnd, sp.hnd)
+	} else {
+		panic("stdCairo.AppendPath(p) unsupported for non-standard path arguments")
+	}
+}
+
+func (sc *stdCairo) HasCurrentPoint() bool {
+	return C.cairo_has_current_point(sc.hnd) > 0
+}
+
+func (sc *stdCairo) GetCurrentPoint() (float64, float64) {
+	var x, y C.double
+	C.cairo_get_current_point(sc.hnd, &x, &y)
+	return float64(x), float64(y)
+}
+
+func (sc *stdCairo) NewPath() {
+	C.cairo_new_path(sc.hnd)
+}
+
+func (sc *stdCairo) NewSubPath() {
+	C.cairo_new_sub_path(sc.hnd)
+}
+
+func (sc *stdCairo) ClosePath() {
+	C.cairo_close_path(sc.hnd)
+}
+
+func (sc *stdCairo) Arc(xc, yc, radius, t1, t2 float64) {
+	C.cairo_arc(sc.hnd, C.double(xc), C.double(yc), C.double(radius), C.double(t1), C.double(t2))
+}
+
+func (sc *stdCairo) ArcNegative(xc, yc, radius, t1, t2 float64) {
+	C.cairo_arc_negative(sc.hnd, C.double(xc), C.double(yc), C.double(radius), C.double(t1), C.double(t2))
+}
+
+func (sc *stdCairo) CurveTo(x1, y1, x2, y2, x3, y3 float64) {
+	C.cairo_curve_to(sc.hnd, C.double(x1), C.double(y1), C.double(x2), C.double(y2), C.double(x3), C.double(y3))
+}
+
+func (sc *stdCairo) LineTo(x, y float64) {
+	C.cairo_line_to(sc.hnd, C.double(x), C.double(y))
+}
+
+func (sc *stdCairo) MoveTo(x, y float64) {
+	C.cairo_move_to(sc.hnd, C.double(x), C.double(y))
+}
+
+func (sc *stdCairo) Rectangle(x, y, width, height float64) {
+	C.cairo_rectangle(sc.hnd, C.double(x), C.double(y), C.double(width), C.double(height))
+}
+
+func (sc *stdCairo) GlyphPath(glyphs []Glyph) {
+	hdr := (*reflect.SliceHeader)(unsafe.Pointer(&glyphs))
+	C.cairo_glyph_path(sc.hnd, (*C.cairo_glyph_t)(unsafe.Pointer(hdr.Data)), C.int(hdr.Len)) 
+}
+
+func (sc *stdCairo) TextPath(text string) {
+	C.cairo_text_path(sc.hnd, C.CString(text))
+}
+
+func (sc *stdCairo) RelCurveTo(dx1, dy1, dx2, dy2, dx3, dy3 float64) {
+	C.cairo_rel_curve_to(sc.hnd, C.double(dx1), C.double(dy1), C.double(dx2), C.double(dy2), C.double(dx3), C.double(dy3))	
+}
+
+func (sc *stdCairo) RelLineTo(dx, dy float64) {
+	C.cairo_rel_line_to(sc.hnd, C.double(dx), C.double(dy))
+}
+
+func (sc *stdCairo) RelMoveTo(dx, dy float64) {
+	C.cairo_rel_move_to(sc.hnd, C.double(dx), C.double(dy))
+}
+
+func (sc *stdCairo) PathExtents() []float64 {
+	var x1, y1, x2, y2 C.double
+	C.cairo_path_extents(sc.hnd, &x1, &y1, &x2, &y2)
+	return []float64{float64(x1),float64(y1),float64(x2),float64(y2)}
 }
