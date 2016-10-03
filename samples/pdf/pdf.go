@@ -12,6 +12,7 @@ func main() {
 	
 	exampleImpls := []reflect.Type{
 		reflect.TypeOf([]samples.ArcSample{}).Elem(),
+		reflect.TypeOf([]samples.ArcNegativeSample{}).Elem(),
 	}
 	
 	for _, impl := range exampleImpls {
