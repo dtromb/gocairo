@@ -16,7 +16,7 @@ func main() {
 	}
 	
 	for _, impl := range exampleImpls {
-		surface := cairo.PdfSurfaceCreate(impl.Name()+".pdf", 400, 400)
+		surface := cairo.PdfSurfaceCreate(impl.Name()+".pdf", 256, 256)
 		sample := reflect.New(impl)
 		sample.Elem().FieldByName("CairoSampleImpl").FieldByName("Ctx").Set(reflect.ValueOf(cairo.Create(surface)))
 		sample.Interface().(samples.CairoSample).Run()
