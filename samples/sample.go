@@ -30,5 +30,11 @@ func GetSampleTypes() []reflect.Type {
 		reflect.TypeOf([]FillAndStroke2Sample{}).Elem(),
 		reflect.TypeOf([]FillStyleSample{}).Elem(),
 		reflect.TypeOf([]GradientSample{}).Elem(),
+		reflect.TypeOf([]ImageSample{}).Elem(),
+		reflect.TypeOf([]ImagePatternSample{}).Elem(),
+		reflect.TypeOf([]MultiSegmentCapsSample{}).Elem(),
+		reflect.TypeOf([]RoundedRectangleSample{}).Elem(),
+		reflect.TypeOf([]SetLineCapSample{}).Elem(),
+		reflect.TypeOf([]SetLineJoinSample{}).Elem(),
 	}
 }
