@@ -10,14 +10,7 @@ import (
 
 func main() {
 	
-	exampleImpls := []reflect.Type{
-		reflect.TypeOf([]samples.ArcSample{}).Elem(),
-		reflect.TypeOf([]samples.ArcNegativeSample{}).Elem(),
-		reflect.TypeOf([]samples.ClipSample{}).Elem(),
-		reflect.TypeOf([]samples.ClipImageSample{}).Elem(),
-	}
-	
-	for _, impl := range exampleImpls {
+	for _, impl := range samples.GetSampleTypes() {
 		surface := cairo.PdfSurfaceCreate(impl.Name()+".pdf", 256, 256)
 		sample := reflect.New(impl)
 		sample.Elem().FieldByName("CairoSampleImpl").FieldByName("Ctx").Set(reflect.ValueOf(cairo.Create(surface)))

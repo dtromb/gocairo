@@ -9,15 +9,8 @@ import (
 )
 
 func main() {
-	
-	exampleImpls := []reflect.Type{
-		reflect.TypeOf([]samples.ArcSample{}).Elem(),
-		reflect.TypeOf([]samples.ArcNegativeSample{}).Elem(),
-		reflect.TypeOf([]samples.ClipSample{}).Elem(),
-		reflect.TypeOf([]samples.ClipImageSample{}).Elem(),
-	}
-	
-	for _, impl := range exampleImpls {
+
+	for _, impl := range samples.GetSampleTypes() {
 		surface := cairo.ImageSurfaceCreate(cairo.FormatRgb16, 256, 256)
 		sample := reflect.New(impl)
 		ctx := cairo.Create(surface)
