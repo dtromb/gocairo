@@ -1,6 +1,8 @@
 package cairo
 
 import (
+	"reflect"
+	"io"
 	"unsafe"
 )
 
@@ -36,4 +38,38 @@ func FreeMimeDataNotify(key uintptr) {
 			DecrementGlobalReferenceCount(r)
 		}
 	}
+}
+
+//export SurfacePngRead
+func SurfacePngRead(closure uintptr, data *C.uchar, length uint) C.cairo_status_t {
+	ref := (*InterfaceRef)(unsafe.Pointer(closure))
+	in := ref.x.(io.Reader)
+	hdr := reflect.SliceHeader{
+		Len: int(length),
+		Cap: int(length),
+		Data: uintptr(unsafe.Pointer(data)),
+	}
+	slice := *(*[]byte)(unsafe.Pointer(&hdr))
+	n, err := in.Read(slice)
+	if n != int(length) || err != nil {
+		return C.cairo_status_t(StatusReadError)
+	}
+	return C.cairo_status_t(StatusSuccess)
+}
+
+//export SurfacePngWrite
+func SurfacePngWrite(closure uintptr, data *C.uchar, length uint) C.cairo_status_t {
+	ref := (*InterfaceRef)(unsafe.Pointer(closure))
+	in := ref.x.(io.Writer)
+	hdr := reflect.SliceHeader{
+		Len: int(length),
+		Cap: int(length),
+		Data: uintptr(unsafe.Pointer(data)),
+	}
+	slice := *(*[]byte)(unsafe.Pointer(&hdr))
+	n, err := in.Write(slice)
+	if n != int(length) || err != nil {
+		return C.cairo_status_t(StatusWriteError)
+	}
+	return C.cairo_status_t(StatusSuccess)
 }

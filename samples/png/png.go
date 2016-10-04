@@ -18,10 +18,18 @@ func main() {
 	}
 	
 	for _, impl := range exampleImpls {
-		surface := cairo.PdfSurfaceCreate(impl.Name()+".pdf", 256, 256)
+		surface := cairo.ImageSurfaceCreate(cairo.FormatRgb16, 256, 256)
 		sample := reflect.New(impl)
-		sample.Elem().FieldByName("CairoSampleImpl").FieldByName("Ctx").Set(reflect.ValueOf(cairo.Create(surface)))
+		ctx := cairo.Create(surface)
+		ctx.Save()
+		ctx.SetLineWidth(0.5)
+		ctx.SetSourceRgb(0.8,0.8,0.8)
+		ctx.Rectangle(0,0,256,256)
+		ctx.Fill()
+		ctx.Restore()
+		sample.Elem().FieldByName("CairoSampleImpl").FieldByName("Ctx").Set(reflect.ValueOf(ctx))
 		sample.Interface().(samples.CairoSample).Run()
+		surface.WriteToPng(impl.Name()+".png")
 		surface.Flush()
 		surface.Finish()
 	}

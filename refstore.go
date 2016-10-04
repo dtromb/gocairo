@@ -6,6 +6,10 @@ import (
 	"math/rand"
 )
 
+type InterfaceRef struct {
+	x interface{}
+}
+
 var global_ReferenceStore stdReferenceStore
 
 func init() {

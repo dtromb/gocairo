@@ -1,6 +1,7 @@
 package cairo
 
 import (
+	"io"
 	"reflect"
 	"unsafe"
 	"runtime"
@@ -81,6 +82,8 @@ type Surface interface {
 	ShowPage()
 	SetMimeData(mimeType MimeType, data []byte)
 	SupportsMimeType(mimeType MimeType) bool
+	WriteToPng(filename string)
+	WriteToPngStream(out io.Writer)
 }
 
 type StandardSurface interface {

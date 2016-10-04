@@ -1,6 +1,7 @@
 package cairo
 
 import (
+	"io"
 	"reflect"
 	"unsafe"
 )
@@ -10,6 +11,16 @@ import (
     #include <cairo/cairo.h>
 	#include <inttypes.h>
 	#include <stdlib.h>
+	
+	cairo_status_t cgo_cairo_surface_png_read_c(void *cl, unsigned char *data, unsigned int len) {
+		return SurfacePngRead(cl,data,len);
+	}
+	cairo_read_func_t cgo_cairo_surface_png_read = cgo_cairo_surface_png_read_c;
+	
+	cairo_status_t cgo_cairo_surface_png_write_c(void *cl, const unsigned char *data, unsigned int len) {
+		return SurfacePngWrite(cl,data,len);
+	}
+	cairo_write_func_t cgo_cairo_surface_png_write = cgo_cairo_surface_png_write_c;
 */
 import "C"
 
@@ -17,12 +28,12 @@ import "C"
 type Format int32
 const (
 	InvalidFormat	Format 	= C.CAIRO_FORMAT_INVALID
-	ARGB32					= C.CAIRO_FORMAT_ARGB32
-	RGB24					= C.CAIRO_FORMAT_RGB24
-	A8						= C.CAIRO_FORMAT_A8
-	A1						= C.CAIRO_FORMAT_A1
-	RGB_16_565				= C.CAIRO_FORMAT_RGB16_565
-	RGB30					= C.CAIRO_FORMAT_RGB30
+	FormatArgb32			= C.CAIRO_FORMAT_ARGB32
+	FormatRgb24				= C.CAIRO_FORMAT_RGB24
+	ForamatA8				= C.CAIRO_FORMAT_A8
+	FormatA1				= C.CAIRO_FORMAT_A1
+	FormatRgb16				= C.CAIRO_FORMAT_RGB16_565
+	FormatRgb30				= C.CAIRO_FORMAT_RGB30
 )
 
 func (f Format) StrideForWidth(width int) int {
@@ -56,6 +67,18 @@ func ImageSurfaceCreateForData(data []byte, format Format, width, height, stride
 	ss := blessImageSurface(csurf, false)		
 	ss.(*stdImageSurface).data = data
 	return ss		
+}
+
+func ImageSurfaceCreateFromPng(filename string) ImageSurface {
+	csurf := C.cairo_image_surface_create_from_png(C.CString(filename))
+	return blessImageSurface(csurf, false)
+}
+
+func ImageSurfaceCreateFromPngStream(in io.Reader) ImageSurface {
+	ref := &InterfaceRef {x: in}
+	csurf := C.cairo_image_surface_create_from_png_stream(C.cgo_cairo_surface_png_read,
+															unsafe.Pointer(ref))
+	return blessImageSurface(csurf, false)
 }
 
 type stdImageSurface struct {
@@ -94,3 +117,11 @@ func (ss *stdImageSurface) GetStride() int {
 	return int(C.cairo_image_surface_get_stride(ss.hnd))
 }
 
+func (ss *stdSurface) WriteToPng(filename string) {
+	C.cairo_surface_write_to_png(ss.hnd, C.CString(filename))
+}
+
+func (ss *stdSurface) WriteToPngStream(out io.Writer) {
+	ref := &InterfaceRef{x:out}
+	C.cairo_surface_write_to_png_stream(ss.hnd, C.cgo_cairo_surface_png_write, unsafe.Pointer(ref))
+}

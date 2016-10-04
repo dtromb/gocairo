@@ -167,6 +167,18 @@ type Cairo interface {
 	RelLineTo(dx, dy float64)
 	RelMoveTo(dx, dy float64)
 	PathExtents() []float64
+	//
+	Translate(x, y float64)
+	Scale(x, y float64)
+	Rotate(t float64)
+	Transform(m Matrix)
+	SetMatrix(m Matrix)
+	GetMatrix(m Matrix)
+	IdentityMatrix()
+	UserToDevice(x, y float64) (float64, float64)
+	UserToDeviceDistance(dx, dy float64) (float64, float64)
+	DeviceToUser(x, y float64) (float64, float64)
+	DeviceToUserDistance(dx, dy float64) (float64, float64)
 }
 
 type stdCairo struct {
@@ -258,8 +270,8 @@ func (sc *stdCairo) SetSource(source Pattern) {
 }
 
 func (sc *stdCairo) SetSourceSurface(s Surface, x, y float64) {
-	if ss, ok := s.(*stdSurface); ok {
-		C.cairo_set_source_surface(sc.hnd, ss.hnd, C.double(x), C.double(y))
+	if ss, ok := s.(StandardSurface); ok {
+		C.cairo_set_source_surface(sc.hnd, ss.GetStandardSurface().hnd, C.double(x), C.double(y))
 	} else {
 		panic("stdCairo.setSourceSurface(s) not implemented for non-standard surface argument")
 	}
@@ -572,4 +584,60 @@ func (sc *stdCairo) PathExtents() []float64 {
 	var x1, y1, x2, y2 C.double
 	C.cairo_path_extents(sc.hnd, &x1, &y1, &x2, &y2)
 	return []float64{float64(x1),float64(y1),float64(x2),float64(y2)}
+}
+
+func (sc *stdCairo) Translate(x, y float64) {
+	C.cairo_translate(sc.hnd, C.double(x), C.double(y))	
+}
+
+func (sc *stdCairo) Scale(x, y float64) {
+	C.cairo_scale(sc.hnd, C.double(x), C.double(y))
+}
+
+func (sc *stdCairo) Rotate(t float64) {
+	C.cairo_rotate(sc.hnd, C.double(t))
+}
+
+func (sc *stdCairo) Transform(m Matrix) {
+	C.cairo_transform(sc.hnd,m.dataref())
+}
+
+func (sc *stdCairo) SetMatrix(m Matrix) {
+	C.cairo_set_matrix(sc.hnd,m.dataref())
+}
+
+func (sc *stdCairo) GetMatrix(m Matrix) {
+	C.cairo_get_matrix(sc.hnd,m.dataref())
+}
+
+func (sc *stdCairo) IdentityMatrix() {
+	C.cairo_identity_matrix(sc.hnd)
+}
+
+func (sc *stdCairo) UserToDevice(x, y float64) (float64,float64) {
+	xx := x
+	yy := y
+	C.cairo_user_to_device(sc.hnd, (*C.double)(&xx), (*C.double)(&yy))
+	return xx, yy
+}
+
+func (sc *stdCairo) UserToDeviceDistance(dx, dy float64) (float64,float64) {	
+    dxx := dx
+	dyy := dy
+	C.cairo_user_to_device_distance(sc.hnd, (*C.double)(&dxx), (*C.double)(&dyy))
+	return dxx, dyy
+}
+
+func (sc *stdCairo) DeviceToUser(x, y float64) (float64, float64) {	
+	xx := x
+	yy := y
+	C.cairo_device_to_user(sc.hnd, (*C.double)(&xx), (*C.double)(&yy))
+	return xx, yy
+}
+
+func (sc *stdCairo) DeviceToUserDistance(dx, dy float64) (float64, float64) {	
+    dxx := dx
+	dyy := dy
+	C.cairo_device_to_user_distance(sc.hnd, (*C.double)(&dxx), (*C.double)(&dyy))
+	return dxx, dyy
 }
