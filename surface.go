@@ -1,11 +1,11 @@
 package cairo
 
 import (
+	"errors"
 	"io"
 	"reflect"
-	"unsafe"
 	"runtime"
-	"errors"
+	"unsafe"
 )
 
 /*
@@ -13,33 +13,33 @@ import (
     #include <cairo/cairo.h>
 	#include <inttypes.h>
 	#include <stdlib.h>
-	
-	
+
+
 	extern cairo_user_data_key_t *cgo_get_cairo_userdata_key(int32_t keyid);
 	extern uint32_t cgo_get_refkey(void *cref);
 	extern void* cgo_get_keyref(uint32_t key);
-	
+
 	struct cgo_cairo_surface_double_pair {
 		double x;
 		double y;
 	};
-	
+
 	int cgo_cairo_device_isnull(cairo_device_t *x) {
 		return x == NULL;
 	}
-	
+
 	void cgo_cairo_get_device_offset(cairo_surface_t *s, struct cgo_cairo_surface_double_pair *pair) {
 		cairo_surface_get_device_offset(s, &pair->x, &pair->y);
 	}
-	
+
 	void cgo_cairo_get_device_scale(cairo_surface_t *s, struct cgo_cairo_surface_double_pair *pair) {
 		cairo_surface_get_device_scale(s, &pair->x, &pair->y);
 	}
-	
+
 	void cgo_cairo_get_fallback_resolution(cairo_surface_t *s, struct cgo_cairo_surface_double_pair *pair) {
 		cairo_surface_get_fallback_resolution(s, &pair->x, &pair->y);
 	}
-		
+
 	void cgo_cairo_surface_userdata_destroy_c(void *sptr) {
 		FreeSurfaceNotify((cairo_surface_t*)sptr);
 	}
@@ -52,30 +52,31 @@ import (
 */
 import "C"
 
-type Content uint32 
+type Content uint32
+
 const (
-	ContentColor		Content		= C.CAIRO_CONTENT_COLOR
-	ContentAlpha					= C.CAIRO_CONTENT_ALPHA
-	ContentColorAlpha				= C.CAIRO_CONTENT_COLOR_ALPHA
+	ContentColor      Content = C.CAIRO_CONTENT_COLOR
+	ContentAlpha              = C.CAIRO_CONTENT_ALPHA
+	ContentColorAlpha         = C.CAIRO_CONTENT_COLOR_ALPHA
 )
 
 type Surface interface {
-	CreateSimilar(content Content, width int, height int) (Surface	,error)
-	CreateSimilarImage(format Format, width int, height int) (Surface,error)
-	CreateForRectangle(x float64, y float64, width float64, height float64) (Surface,error)
+	CreateSimilar(content Content, width int, height int) (Surface, error)
+	CreateSimilarImage(format Format, width int, height int) (Surface, error)
+	CreateForRectangle(x float64, y float64, width float64, height float64) (Surface, error)
 	Status() Status
 	Finish()
 	Flush()
 	GetDevice() Device
 	GetFontOptions() FontOptions
- 	GetContent() Content
+	GetContent() Content
 	MarkDirty()
 	MarkDirtyRectangle(x, y, width, height int)
 	SetDeviceOffset(x, y float64)
 	GetDeviceOffset() (float64, float64)
-	SetDeviceScale(x, y float64) 
+	SetDeviceScale(x, y float64)
 	GetDeviceScale() (float64, float64)
-	SetFallbackResolution(x, y float64) 
+	SetFallbackResolution(x, y float64)
 	GetFallbackResolution() (float64, float64)
 	GetType() SurfaceType
 	CopyPage()
@@ -91,37 +92,38 @@ type StandardSurface interface {
 }
 
 type SurfaceType uint32
+
 const (
-	SurfaceTypeImage		SurfaceType		= C.CAIRO_SURFACE_TYPE_IMAGE
-	SurfaceTypePdf							= C.CAIRO_SURFACE_TYPE_PDF
-	SurfaceTypePs							= C.CAIRO_SURFACE_TYPE_PS
-	SurfaceTypeXlib							= C.CAIRO_SURFACE_TYPE_XLIB
-	SurfaceTypeXcb							= C.CAIRO_SURFACE_TYPE_XCB
-	SurfaceTypeGlitz						= C.CAIRO_SURFACE_TYPE_GLITZ
-	SurfaceTypeQuartz						= C.CAIRO_SURFACE_TYPE_QUARTZ
-	SurfaceTypeWin32						= C.CAIRO_SURFACE_TYPE_WIN32
-	SurfaceTypeBeos							= C.CAIRO_SURFACE_TYPE_BEOS
-	SurfaceTypeDirectFb						= C.CAIRO_SURFACE_TYPE_DIRECTFB
-	SurfaceTypeSvg							= C.CAIRO_SURFACE_TYPE_SVG
-	SurfaceTypeOS2							= C.CAIRO_SURFACE_TYPE_OS2
-	SurfaceTypePrinting						= C.CAIRO_SURFACE_TYPE_WIN32_PRINTING
-	SurfaceTypeQuartzImage					= C.CAIRO_SURFACE_TYPE_QUARTZ_IMAGE
-	SurfaceTypeScript						= C.CAIRO_SURFACE_TYPE_SCRIPT
-	SurfaceTypeQt							= C.CAIRO_SURFACE_TYPE_QT
-	SurfaceTypeRecording					= C.CAIRO_SURFACE_TYPE_RECORDING
-	SurfaceTypeVg							= C.CAIRO_SURFACE_TYPE_VG
-	SurfaceTypeGl 							= C.CAIRO_SURFACE_TYPE_GL
-	SurfaceTypeDrm 							= C.CAIRO_SURFACE_TYPE_DRM
-	SurfaceTypeTee 							= C.CAIRO_SURFACE_TYPE_TEE
-	SurfaceTypeXml 							= C.CAIRO_SURFACE_TYPE_XML
-	SurfaceTypeSkia 						= C.CAIRO_SURFACE_TYPE_SKIA
-	SurfaceTypeSubsurface 					= C.CAIRO_SURFACE_TYPE_SUBSURFACE
-	SurfaceTypeCogl 						= C.CAIRO_SURFACE_TYPE_COGL
+	SurfaceTypeImage       SurfaceType = C.CAIRO_SURFACE_TYPE_IMAGE
+	SurfaceTypePdf                     = C.CAIRO_SURFACE_TYPE_PDF
+	SurfaceTypePs                      = C.CAIRO_SURFACE_TYPE_PS
+	SurfaceTypeXlib                    = C.CAIRO_SURFACE_TYPE_XLIB
+	SurfaceTypeXcb                     = C.CAIRO_SURFACE_TYPE_XCB
+	SurfaceTypeGlitz                   = C.CAIRO_SURFACE_TYPE_GLITZ
+	SurfaceTypeQuartz                  = C.CAIRO_SURFACE_TYPE_QUARTZ
+	SurfaceTypeWin32                   = C.CAIRO_SURFACE_TYPE_WIN32
+	SurfaceTypeBeos                    = C.CAIRO_SURFACE_TYPE_BEOS
+	SurfaceTypeDirectFb                = C.CAIRO_SURFACE_TYPE_DIRECTFB
+	SurfaceTypeSvg                     = C.CAIRO_SURFACE_TYPE_SVG
+	SurfaceTypeOS2                     = C.CAIRO_SURFACE_TYPE_OS2
+	SurfaceTypePrinting                = C.CAIRO_SURFACE_TYPE_WIN32_PRINTING
+	SurfaceTypeQuartzImage             = C.CAIRO_SURFACE_TYPE_QUARTZ_IMAGE
+	SurfaceTypeScript                  = C.CAIRO_SURFACE_TYPE_SCRIPT
+	SurfaceTypeQt                      = C.CAIRO_SURFACE_TYPE_QT
+	SurfaceTypeRecording               = C.CAIRO_SURFACE_TYPE_RECORDING
+	SurfaceTypeVg                      = C.CAIRO_SURFACE_TYPE_VG
+	SurfaceTypeGl                      = C.CAIRO_SURFACE_TYPE_GL
+	SurfaceTypeDrm                     = C.CAIRO_SURFACE_TYPE_DRM
+	SurfaceTypeTee                     = C.CAIRO_SURFACE_TYPE_TEE
+	SurfaceTypeXml                     = C.CAIRO_SURFACE_TYPE_XML
+	SurfaceTypeSkia                    = C.CAIRO_SURFACE_TYPE_SKIA
+	SurfaceTypeSubsurface              = C.CAIRO_SURFACE_TYPE_SUBSURFACE
+	SurfaceTypeCogl                    = C.CAIRO_SURFACE_TYPE_COGL
 )
 
 type stdSurface struct {
-	hnd *C.cairo_surface_t
-	device Device
+	hnd        *C.cairo_surface_t
+	device     Device
 	userdata_r Reference
 }
 
@@ -129,17 +131,18 @@ func referenceSurface(cref *C.cairo_surface_t) Surface {
 	stype := SurfaceType(C.cairo_surface_get_type(cref))
 	baseSurface := blessSurface(cref, true)
 	ss := baseSurface.(*stdSurface)
-	switch(stype) {
-		case SurfaceTypeImage: {
-			return &stdImageSurface{stdSurface:ss}
+	switch stype {
+	case SurfaceTypeImage:
+		{
+			return &stdImageSurface{stdSurface: ss}
 		}
-		case SurfaceTypePdf: {
-			return &stdPdfSurface{stdSurface:ss}
+	case SurfaceTypePdf:
+		{
+			return &stdPdfSurface{stdSurface: ss}
 		}
 	}
 	return baseSurface
 }
-
 
 func destroySurface(s Surface) {
 	if fn, ok := s.(Finalizable); ok {
@@ -168,8 +171,8 @@ func (s *stdSurface) GetStandardSurface() *stdSurface {
 
 func (s *stdSurface) CreateSimilar(content Content, width int, height int) (Surface, error) {
 	// Request the new surface.
-	nsurf := C.cairo_surface_create_similar(s.hnd, C.cairo_content_t(content), 
-	                                        C.int(width), C.int(height))
+	nsurf := C.cairo_surface_create_similar(s.hnd, C.cairo_content_t(content),
+		C.int(width), C.int(height))
 	// Check for error condition.
 	rc := uint(C.cairo_surface_get_reference_count(nsurf))
 	if rc == 0 {
@@ -178,13 +181,13 @@ func (s *stdSurface) CreateSimilar(content Content, width int, height int) (Surf
 		return nil, errors.New(status.String())
 	}
 	// Return the new Surface.
-	return blessSurface(nsurf,false), nil
+	return blessSurface(nsurf, false), nil
 }
 
 func (s *stdSurface) CreateSimilarImage(format Format, width int, height int) (Surface, error) {
 	// Request the new surface.
-	nsurf := C.cairo_surface_create_similar_image(s.hnd, C.cairo_format_t(format), 
-	                                              C.int(width), C.int(height))
+	nsurf := C.cairo_surface_create_similar_image(s.hnd, C.cairo_format_t(format),
+		C.int(width), C.int(height))
 	// Check for error condition.
 	rc := uint(C.cairo_surface_get_reference_count(nsurf))
 	if rc == 0 {
@@ -193,10 +196,10 @@ func (s *stdSurface) CreateSimilarImage(format Format, width int, height int) (S
 		return nil, errors.New(status.String())
 	}
 	// Return the new Surface.
-	return blessSurface(nsurf,false), nil
+	return blessSurface(nsurf, false), nil
 }
 
-func (s *stdSurface) CreateForRectangle(x float64, y float64, width float64, height float64) (Surface,error) {
+func (s *stdSurface) CreateForRectangle(x float64, y float64, width float64, height float64) (Surface, error) {
 	// Request the new surface.
 	nsurf := C.cairo_surface_create_for_rectangle(s.hnd, C.double(x), C.double(y), C.double(width), C.double(height))
 	// Check for error condition.
@@ -207,8 +210,8 @@ func (s *stdSurface) CreateForRectangle(x float64, y float64, width float64, hei
 		return nil, errors.New(status.String())
 	}
 	// Return the new Surface.
-	return blessSurface(nsurf,false), nil
-}	
+	return blessSurface(nsurf, false), nil
+}
 
 func (s *stdSurface) Status() Status {
 	return Status(C.cairo_surface_status(s.hnd))
@@ -230,7 +233,7 @@ func (s *stdSurface) GetDevice() Device {
 		}
 		// XXX - The docs do not explicitly say that cairo_surface_get_device()
 		// increments the device's reference count, check that this is true.
-		s.device = blessDevice(ndev,false)
+		s.device = blessDevice(ndev, false)
 	}
 	return s.device
 }
@@ -239,7 +242,7 @@ func (s *stdSurface) GetFontOptions() FontOptions {
 	opts := NewFontOptions()
 	stdOpts := opts.(*stdFontOptions)
 	C.cairo_surface_get_font_options(s.hnd, stdOpts.hnd)
-	return opts	
+	return opts
 }
 
 func (s *stdSurface) GetContent() Content {
@@ -289,10 +292,10 @@ func (s *stdSurface) GetType() SurfaceType {
 }
 
 func (s *stdSurface) SetUserData(key string, data interface{}) {
-    if s.userdata_r == nil {
+	if s.userdata_r == nil {
 		// Attempt to load the Go ref table from the C-held ref key.
 		refkey := C.cgo_get_refkey(C.cairo_surface_get_user_data(s.hnd, C.cgo_get_cairo_userdata_key(GO_DATAKEY_KEY)))
-	 	if refkey != 0 {
+		if refkey != 0 {
 			var ok bool
 			s.userdata_r, ok = LookupGlobalReference(uint32(refkey))
 			if !ok {
@@ -301,20 +304,20 @@ func (s *stdSurface) SetUserData(key string, data interface{}) {
 		} else {
 			userdataMap := make(map[string]interface{})
 			s.userdata_r = MakeGlobalReference(userdataMap)
-			C.cairo_surface_set_user_data(s.hnd, C.cgo_get_cairo_userdata_key(GO_DATAKEY_KEY), 
-			                              C.cgo_get_keyref(C.uint32_t(s.userdata_r.Key())), C.cgo_cairo_surface_destroy)
+			C.cairo_surface_set_user_data(s.hnd, C.cgo_get_cairo_userdata_key(GO_DATAKEY_KEY),
+				C.cgo_get_keyref(C.uint32_t(s.userdata_r.Key())), C.cgo_cairo_surface_destroy)
 			IncrementGlobalReferenceCount(s.userdata_r)
 		}
 	}
 	userdata := s.userdata_r.Ref().(map[string]interface{})
-	userdata[key] = data  
+	userdata[key] = data
 }
 
-func (s *stdSurface) GetUserData(key string) (interface{},bool) {
-    if s.userdata_r == nil {
+func (s *stdSurface) GetUserData(key string) (interface{}, bool) {
+	if s.userdata_r == nil {
 		// Attempt to load the Go ref table from the C-held ref key.
 		refkey := C.cgo_get_refkey(C.cairo_device_get_user_data(s.hnd, C.cgo_get_cairo_userdata_key(GO_DATAKEY_KEY)))
-	 	if refkey != 0 {
+		if refkey != 0 {
 			var ok bool
 			s.userdata_r, ok = LookupGlobalReference(uint32(refkey))
 			if !ok {
@@ -344,26 +347,26 @@ func (s *stdSurface) HasShowTextGlyphs() bool {
 func (s *stdSurface) SetMimeData(mimeType MimeType, data []byte) {
 	ref := MakeGlobalReference(data)
 	datahdr := (*reflect.SliceHeader)(unsafe.Pointer(&data))
-	C.cairo_surface_set_mime_data(s.hnd, C.CString(string(mimeType)), 
-						  		   (*C.uchar)(unsafe.Pointer(datahdr.Data)), C.ulong(datahdr.Len),
-								   C.cgo_cairo_surface_mime_data_destroy, 
-								   C.cgo_get_keyref(C.uint32_t(ref.Key())))
+	C.cairo_surface_set_mime_data(s.hnd, C.CString(string(mimeType)),
+		(*C.uchar)(unsafe.Pointer(datahdr.Data)), C.ulong(datahdr.Len),
+		C.cgo_cairo_surface_mime_data_destroy,
+		C.cgo_get_keyref(C.uint32_t(ref.Key())))
 }
 
-func (s *stdSurface) GetMimeData(mimeType MimeType) ([]byte,bool) {
+func (s *stdSurface) GetMimeData(mimeType MimeType) ([]byte, bool) {
 	// XXX - How do alloc semantics for this work?   Completely
 	// undocumented in the reference!
 	panic("stdSurface.GetMimeData() unimplemented")
 }
 
 func (s *stdSurface) SupportsMimeType(mimeType MimeType) bool {
-	return C.cairo_surface_supports_mime_type(s.hnd, C.CString(string(mimeType))) > 0;
+	return C.cairo_surface_supports_mime_type(s.hnd, C.CString(string(mimeType))) > 0
 }
 
 func (s *stdSurface) MapToImage(rect RectangleInt) Surface {
 	var r C.cairo_rectangle_int_t
-	r.x = C.int(rect.X) 
-	r.y = C.int(rect.Y) 
+	r.x = C.int(rect.X)
+	r.y = C.int(rect.Y)
 	r.width = C.int(rect.Width)
 	r.height = C.int(rect.Height)
 	nsurf := C.cairo_surface_map_to_image(s.hnd, &r)

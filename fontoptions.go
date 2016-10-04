@@ -50,7 +50,6 @@ func NewFontOptions() FontOptions {
 	return nfo
 }
 
-
 func (fo *stdFontOptions) Copy() FontOptions {
 	nfo := &stdFontOptions{
 		hnd: C.cairo_font_options_copy(fo.hnd),
@@ -58,7 +57,6 @@ func (fo *stdFontOptions) Copy() FontOptions {
 	runtime.SetFinalizer(nfo, destroyFontOptions)
 	return nfo
 }
-
 
 func (fo *stdFontOptions) Status() Status {
 	return Status(C.cairo_font_options_status(fo.hnd))
@@ -86,9 +84,9 @@ func (fo *stdFontOptions) Equals(other FontOptions) bool {
 		return int(C.cairo_font_options_equal(fo.hnd, sfo.hnd)) > 0
 	} else {
 		return fo.GetAntialias() == other.GetAntialias() &&
-			   fo.GetHintMetrics() == other.GetHintMetrics() &&
-			   fo.GetHintStyle() == other.GetHintStyle() &&
-			   fo.GetSubpixelOrder() == other.GetSubpixelOrder()
+			fo.GetHintMetrics() == other.GetHintMetrics() &&
+			fo.GetHintStyle() == other.GetHintStyle() &&
+			fo.GetSubpixelOrder() == other.GetSubpixelOrder()
 	}
 }
 

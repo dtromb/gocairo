@@ -10,7 +10,7 @@ import (
     #include <cairo/cairo-pdf.h>
 	#include <inttypes.h>
 	#include <stdlib.h>
-*/ 
+*/
 import "C"
 
 // XXX - Write data accessors in C and expose them on this object.

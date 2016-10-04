@@ -9,9 +9,10 @@ package cairo
 import "C"
 
 type Extend uint32
+
 const (
-	ExtendNone			Extend 	= C.CAIRO_EXTEND_NONE
-	ExtendRepeat				= C.CAIRO_EXTEND_REPEAT
-	ExtendReflect				= C.CAIRO_EXTEND_REFLECT
-	ExtendPad					= C.CAIRO_EXTEND_PAD
+	ExtendNone    Extend = C.CAIRO_EXTEND_NONE
+	ExtendRepeat         = C.CAIRO_EXTEND_REPEAT
+	ExtendReflect        = C.CAIRO_EXTEND_REFLECT
+	ExtendPad            = C.CAIRO_EXTEND_PAD
 )

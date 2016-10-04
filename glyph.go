@@ -5,23 +5,24 @@ package cairo
     #include <cairo/cairo.h>
 	#include <inttypes.h>
 	#include <stdlib.h>
-	
+
 	unsigned long cgo_cairo_glyph_index(cairo_glyph_t *glyph) {
 		return glyph->index;
 	}
-	
+
 	double cgo_cairo_glyph_x(cairo_glyph_t *glyph) {
 		return glyph->x;
 	}
-	
+
 	double cgo_cairo_glyph_y(cairo_glyph_t *glyph) {
 		return glyph->y;
 	}
-	
+
 */
 import "C"
 
 type Glyph C.cairo_glyph_t
+
 /*
 typedef struct {
     unsigned long        index;

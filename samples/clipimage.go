@@ -1,8 +1,8 @@
 package samples
 
 import (
-	"math"
 	cairo "github.com/dtromb/gocairo"
+	"math"
 )
 
 type ClipImageSample struct {
@@ -10,12 +10,12 @@ type ClipImageSample struct {
 }
 
 func (as *ClipImageSample) Run() {
-	
+
 	ctx := as.CairoContext()
 	ctx.Arc(128.0, 128.0, 76.8, 0, 2*math.Pi)
 	ctx.Clip()
 	ctx.NewPath()
-	
+
 	image := cairo.ImageSurfaceCreateFromPng("../romedalen.png")
 	if image.Status() != cairo.StatusSuccess {
 		panic(image.Status().String())

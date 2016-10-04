@@ -9,18 +9,18 @@ import (
     #include <cairo/cairo.h>
 	#include <inttypes.h>
 	#include <stdlib.h>
-	
-	
+
+
 	extern cairo_user_data_key_t *cgo_get_cairo_userdata_key(int32_t keyid);
 	extern uint32_t cgo_get_refkey(void *cref);
 	extern void* cgo_get_keyref(uint32_t key);
-	
+
 	void cgo_cairo_device_userdata_destroy_c(void* x) {
 		FreeDeviceNotify((cairo_device_t*)x);
 	}
 	cairo_destroy_func_t cgo_cairo_device_userdata_destroy = cgo_cairo_device_userdata_destroy_c;
-	
-	
+
+
 */
 import "C"
 
@@ -28,31 +28,32 @@ type Device interface {
 	Finish()
 	Flush()
 	GetUserData(key string) (interface{}, bool)
-	ObserverElapsed() float64 
-	ObserverFillElapsed() float64 
-	ObserverPaintElapsed() float64 
-	ObserverMaskElapsed() float64 
+	ObserverElapsed() float64
+	ObserverFillElapsed() float64
+	ObserverPaintElapsed() float64
+	ObserverMaskElapsed() float64
 	ObserverGlyphsElapsed() float64
 	SetUserData(key string, data interface{})
 	Status() Status
 }
 
 type stdDevice struct {
-	hnd *C.cairo_device_t
+	hnd        *C.cairo_device_t
 	userdata_r Reference
 }
 
 type DeviceType uint32
+
 const (
-	DeviceDRM		DeviceType 	=		C.CAIRO_DEVICE_TYPE_DRM
-	DeviceGL				   	=		C.CAIRO_DEVICE_TYPE_GL
-	DeviceScript				=		C.CAIRO_DEVICE_TYPE_SCRIPT
-	DeviceXCB					=		C.CAIRO_DEVICE_TYPE_XCB
-	DeviceXLib					=		C.CAIRO_DEVICE_TYPE_XLIB
-	DeviceXML					=		C.CAIRO_DEVICE_TYPE_XML
-	DeviceCOGL					=		C.CAIRO_DEVICE_TYPE_COGL
-	DeviceWin32					=		C.CAIRO_DEVICE_TYPE_WIN32
-	DeviceInvalidDevice			=		C.CAIRO_DEVICE_TYPE_INVALID
+	DeviceDRM           DeviceType = C.CAIRO_DEVICE_TYPE_DRM
+	DeviceGL                       = C.CAIRO_DEVICE_TYPE_GL
+	DeviceScript                   = C.CAIRO_DEVICE_TYPE_SCRIPT
+	DeviceXCB                      = C.CAIRO_DEVICE_TYPE_XCB
+	DeviceXLib                     = C.CAIRO_DEVICE_TYPE_XLIB
+	DeviceXML                      = C.CAIRO_DEVICE_TYPE_XML
+	DeviceCOGL                     = C.CAIRO_DEVICE_TYPE_COGL
+	DeviceWin32                    = C.CAIRO_DEVICE_TYPE_WIN32
+	DeviceInvalidDevice            = C.CAIRO_DEVICE_TYPE_INVALID
 )
 
 func destroyDevice(d Device) {
@@ -89,10 +90,10 @@ func (d *stdDevice) Flush() {
 }
 
 func (d *stdDevice) SetUserData(key string, data interface{}) {
-    if d.userdata_r == nil {
+	if d.userdata_r == nil {
 		// Attempt to load the Go ref table from the C-held ref key.
 		refkey := C.cgo_get_refkey(C.cairo_device_get_user_data(d.hnd, C.cgo_get_cairo_userdata_key(GO_DATAKEY_KEY)))
-	 	if refkey != 0 {
+		if refkey != 0 {
 			var ok bool
 			d.userdata_r, ok = LookupGlobalReference(uint32(refkey))
 			if !ok {
@@ -101,20 +102,20 @@ func (d *stdDevice) SetUserData(key string, data interface{}) {
 		} else {
 			userdataMap := make(map[string]interface{})
 			d.userdata_r = MakeGlobalReference(userdataMap)
-			C.cairo_device_set_user_data(d.hnd, C.cgo_get_cairo_userdata_key(GO_DATAKEY_KEY), 
-			                             C.cgo_get_keyref(C.uint32_t(d.userdata_r.Key())), C.cgo_cairo_device_userdata_destroy)
+			C.cairo_device_set_user_data(d.hnd, C.cgo_get_cairo_userdata_key(GO_DATAKEY_KEY),
+				C.cgo_get_keyref(C.uint32_t(d.userdata_r.Key())), C.cgo_cairo_device_userdata_destroy)
 			IncrementGlobalReferenceCount(d.userdata_r)
 		}
 	}
 	userdata := d.userdata_r.Ref().(map[string]interface{})
-	userdata[key] = data  
+	userdata[key] = data
 }
 
-func (d *stdDevice) GetUserData(key string) (interface{},bool) {
-    if d.userdata_r == nil {
+func (d *stdDevice) GetUserData(key string) (interface{}, bool) {
+	if d.userdata_r == nil {
 		// Attempt to load the Go ref table from the C-held ref key.
 		refkey := C.cgo_get_refkey(C.cairo_device_get_user_data(d.hnd, C.cgo_get_cairo_userdata_key(GO_DATAKEY_KEY)))
-	 	if refkey != 0 {
+		if refkey != 0 {
 			var ok bool
 			d.userdata_r, ok = LookupGlobalReference(uint32(refkey))
 			if !ok {

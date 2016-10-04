@@ -1,8 +1,8 @@
 package samples
 
 import (
-	"math"
 	cairo "github.com/dtromb/gocairo"
+	"math"
 )
 
 type GradientSample struct {
@@ -10,7 +10,7 @@ type GradientSample struct {
 }
 
 func (as *GradientSample) Run() {
-	
+
 	ctx := as.CairoContext()
 	pat := cairo.PatternCreateLinear(0.0, 0.0, 0.0, 256.0)
 	pat.AddColorStopRgba(1, 0, 0, 0, 1)
@@ -18,7 +18,7 @@ func (as *GradientSample) Run() {
 	ctx.Rectangle(0, 0, 256, 256)
 	ctx.SetSource(pat)
 	ctx.Fill()
-	
+
 	pat = cairo.PatternCreateRadial(115.2, 102.4, 25.6, 102.4, 102.4, 128.0)
 	pat.AddColorStopRgba(0, 1, 1, 1, 1)
 	pat.AddColorStopRgba(1, 0, 0, 0, 1)

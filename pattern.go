@@ -11,11 +11,11 @@ import (
     #include <cairo/cairo-pdf.h>
 	#include <inttypes.h>
 	#include <stdlib.h>
-		
+
 	extern cairo_user_data_key_t *cgo_get_cairo_userdata_key(int32_t keyid);
 	extern uint32_t cgo_get_refkey(void *cref);
 	extern void* cgo_get_keyref(uint32_t key);
-	
+
 	void cgo_cairo_pattern_userdata_destroy_c(void *sptr) {
 		FreePatternNotify((cairo_pattern_t*)sptr);
 	}
@@ -24,34 +24,35 @@ import (
 */
 import "C"
 
-type PatternType uint32 
-const(
-	PatternTypeSolid		PatternType	= C.CAIRO_PATTERN_TYPE_SOLID
-	PatternTypeSurface					= C.CAIRO_PATTERN_TYPE_SURFACE
-	PatternTypeLinear					= C.CAIRO_PATTERN_TYPE_LINEAR
-	PatternTypeRadial					= C.CAIRO_PATTERN_TYPE_RADIAL
-	PatternTypeMesh						= C.CAIRO_PATTERN_TYPE_MESH
-	PatternTypeRasterSource				= C.CAIRO_PATTERN_TYPE_RASTER_SOURCE
+type PatternType uint32
+
+const (
+	PatternTypeSolid        PatternType = C.CAIRO_PATTERN_TYPE_SOLID
+	PatternTypeSurface                  = C.CAIRO_PATTERN_TYPE_SURFACE
+	PatternTypeLinear                   = C.CAIRO_PATTERN_TYPE_LINEAR
+	PatternTypeRadial                   = C.CAIRO_PATTERN_TYPE_RADIAL
+	PatternTypeMesh                     = C.CAIRO_PATTERN_TYPE_MESH
+	PatternTypeRasterSource             = C.CAIRO_PATTERN_TYPE_RASTER_SOURCE
 )
 
 type Pattern interface {
 	AddColorStopRgb(offset float64, r, g, b float64)
 	AddColorStopRgba(offset float64, r, g, b, a float64)
-	GetColorStopCount() (int,error)
-	GetColorStopRgba(idx int) ([]float64,error)
-	GetRgba() ([]float64,error)
-	GetSurface() (Surface,error)
+	GetColorStopCount() (int, error)
+	GetColorStopRgba(idx int) ([]float64, error)
+	GetRgba() ([]float64, error)
+	GetSurface() (Surface, error)
 	GetLinearPoints() ([]float64, error)
 	GetRadialCircles() ([]float64, error)
 	Status() Status
-	SetExtend(ex Extend) 
-	GetExtend() Extend 
-	SetFilter(ex Filter) 
-	GetFilter() Filter 
+	SetExtend(ex Extend)
+	GetExtend() Extend
+	SetFilter(ex Filter)
+	GetFilter() Filter
 	SetMatrix(matrix Matrix)
 	GetMatrix() Matrix
 	SetUserData(key string, data interface{})
-	GetUserData(key string) (interface{},bool)
+	GetUserData(key string) (interface{}, bool)
 	GetType() PatternType
 }
 
@@ -65,21 +66,22 @@ type MeshPattern interface {
 	SetControlPoint(idx int, x, y float64)
 	SetCornerColorRgb(idx int, r, g, b float64)
 	SetCornerColorRgba(idx int, r, g, b, a float64)
-	GetPatchCount() (uint,error)
+	GetPatchCount() (uint, error)
 	GetPath(idx int) Path
 	GetControlPoint(patch int, path int) ([]float64, error)
 	GetCornerColorRgba(patch int, corneridx int) ([]float64, error)
 }
 
 type stdPattern struct {
-	hnd *C.cairo_pattern_t
+	hnd        *C.cairo_pattern_t
 	userdata_r Reference
 }
 
 func referencePattern(cref *C.cairo_pattern_t) Pattern {
 	ptype := C.cairo_pattern_get_type(cref)
-	switch(ptype) {
-		case PatternTypeMesh: {
+	switch ptype {
+	case PatternTypeMesh:
+		{
 			return blessMeshPattern(cref, true)
 		}
 	}
@@ -97,8 +99,8 @@ func destroyPattern(p Pattern) {
 }
 
 func blessMeshPattern(hnd *C.cairo_pattern_t, addRef bool) MeshPattern {
-	sp := blessPattern(hnd,addRef)
-	mp := &stdMeshPattern{stdPattern:sp.(*stdPattern)}
+	sp := blessPattern(hnd, addRef)
+	mp := &stdMeshPattern{stdPattern: sp.(*stdPattern)}
 	return mp
 }
 
@@ -121,7 +123,7 @@ func (sp *stdPattern) AddColorStopRgba(offset float64, r, g, b, a float64) {
 	C.cairo_pattern_add_color_stop_rgba(sp.hnd, C.double(offset), C.double(r), C.double(g), C.double(b), C.double(a))
 }
 
-func (sp *stdPattern) GetColorStopCount() (int,error) {
+func (sp *stdPattern) GetColorStopCount() (int, error) {
 	var x C.int
 	status := Status(C.cairo_pattern_get_color_stop_count(sp.hnd, &x))
 	if status != StatusSuccess {
@@ -130,28 +132,28 @@ func (sp *stdPattern) GetColorStopCount() (int,error) {
 	return int(x), nil
 }
 
-func (sp *stdPattern) GetColorStopRgba(idx int) ([]float64,error) {
+func (sp *stdPattern) GetColorStopRgba(idx int) ([]float64, error) {
 	var ofs, r, g, b, a C.double
 	status := Status(C.cairo_pattern_get_color_stop_rgba(sp.hnd, C.int(idx),
-														   &ofs, &r, &g, &b, &a))
+		&ofs, &r, &g, &b, &a))
 	if status != StatusSuccess {
 		return nil, errors.New(status.String())
 	}
-	return []float64{float64(ofs),float64(r),float64(g),float64(b),float64(a)}, nil
+	return []float64{float64(ofs), float64(r), float64(g), float64(b), float64(a)}, nil
 }
 
-func (sp *stdPattern) GetRgba() ([]float64,error) {
+func (sp *stdPattern) GetRgba() ([]float64, error) {
 	var r, g, b, a C.double
 	status := Status(C.cairo_pattern_get_rgba(sp.hnd, &r, &g, &b, &a))
 	if status != StatusSuccess {
 		return nil, errors.New(status.String())
 	}
-	return []float64{float64(r),float64(g),float64(b),float64(a)}, nil
+	return []float64{float64(r), float64(g), float64(b), float64(a)}, nil
 }
 
-func (sp *stdPattern) GetSurface() (Surface,error) {
+func (sp *stdPattern) GetSurface() (Surface, error) {
 	var csurf *C.cairo_surface_t
-	status := Status(C.cairo_pattern_get_surface(sp.hnd,&csurf))
+	status := Status(C.cairo_pattern_get_surface(sp.hnd, &csurf))
 	if status != StatusSuccess {
 		return nil, errors.New(status.String())
 	}
@@ -164,7 +166,7 @@ func (sp *stdPattern) GetLinearPoints() ([]float64, error) {
 	if status != StatusSuccess {
 		return nil, errors.New(status.String())
 	}
-	return []float64{float64(x1),float64(y1),float64(x2),float64(y2)}, nil
+	return []float64{float64(x1), float64(y1), float64(x2), float64(y2)}, nil
 }
 
 func (sp *stdPattern) GetRadialCircles() ([]float64, error) {
@@ -173,7 +175,7 @@ func (sp *stdPattern) GetRadialCircles() ([]float64, error) {
 	if status != StatusSuccess {
 		return nil, errors.New(status.String())
 	}
-	return []float64{float64(x1),float64(y1),float64(r1),float64(x2),float64(y2),float64(r2)}, nil
+	return []float64{float64(x1), float64(y1), float64(r1), float64(x2), float64(y2), float64(r2)}, nil
 }
 
 func (sp *stdPattern) Status() Status {
@@ -210,7 +212,7 @@ func (sp *stdPattern) SetUserData(key string, data interface{}) {
 	if sp.userdata_r == nil {
 		// Attempt to load the Go ref table from the C-held ref key.
 		refkey := C.cgo_get_refkey(C.cairo_pattern_get_user_data(sp.hnd, C.cgo_get_cairo_userdata_key(GO_DATAKEY_KEY)))
-	 	if refkey != 0 {
+		if refkey != 0 {
 			var ok bool
 			sp.userdata_r, ok = LookupGlobalReference(uint32(refkey))
 			if !ok {
@@ -219,16 +221,16 @@ func (sp *stdPattern) SetUserData(key string, data interface{}) {
 		} else {
 			userdataMap := make(map[string]interface{})
 			sp.userdata_r = MakeGlobalReference(userdataMap)
-			C.cairo_pattern_set_user_data(sp.hnd, C.cgo_get_cairo_userdata_key(GO_DATAKEY_KEY), 
-			                              C.cgo_get_keyref(C.uint32_t(sp.userdata_r.Key())), C.cgo_cairo_pattern_userdata_destroy)
+			C.cairo_pattern_set_user_data(sp.hnd, C.cgo_get_cairo_userdata_key(GO_DATAKEY_KEY),
+				C.cgo_get_keyref(C.uint32_t(sp.userdata_r.Key())), C.cgo_cairo_pattern_userdata_destroy)
 			IncrementGlobalReferenceCount(sp.userdata_r)
 		}
 	}
 	userdata := sp.userdata_r.Ref().(map[string]interface{})
-	userdata[key] = data  
+	userdata[key] = data
 }
 
-func (sp *stdPattern) GetUserData(key string) (interface{},bool) {
+func (sp *stdPattern) GetUserData(key string) (interface{}, bool) {
 	if sp.userdata_r == nil {
 		// Attempt to load the Go ref table from the C-held ref key.
 		refkey := C.cgo_get_refkey(C.cairo_pattern_get_user_data(sp.hnd, C.cgo_get_cairo_userdata_key(GO_DATAKEY_KEY)))
@@ -245,7 +247,7 @@ func (sp *stdPattern) GetUserData(key string) (interface{},bool) {
 	userdata := sp.userdata_r.Ref().(map[string]interface{})
 	val, has := userdata[key]
 	return val, has
-}		
+}
 
 func (mp *stdPattern) GetType() PatternType {
 	return PatternType(C.cairo_pattern_get_type(mp.hnd))
@@ -253,7 +255,7 @@ func (mp *stdPattern) GetType() PatternType {
 
 type stdMeshPattern struct {
 	*stdPattern
-}		
+}
 
 func (mp *stdMeshPattern) BeginPatch() {
 	C.cairo_mesh_pattern_begin_patch(mp.stdPattern.hnd)
@@ -272,9 +274,9 @@ func (mp *stdMeshPattern) LineTo(x, y float64) {
 }
 
 func (mp *stdMeshPattern) CurveTo(x1, y1, x2, y2, x3, y3 float64) {
-	C.cairo_mesh_pattern_curve_to(mp.stdPattern.hnd, 	C.double(x1), C.double(y1), 
-													  	C.double(x2), C.double(y2), 
-													  	C.double(x3), C.double(y3))
+	C.cairo_mesh_pattern_curve_to(mp.stdPattern.hnd, C.double(x1), C.double(y1),
+		C.double(x2), C.double(y2),
+		C.double(x3), C.double(y3))
 }
 
 func (mp *stdMeshPattern) SetControlPoint(idx int, x, y float64) {
@@ -289,7 +291,7 @@ func (mp *stdMeshPattern) SetCornerColorRgba(idx int, r, g, b, a float64) {
 	C.cairo_mesh_pattern_set_corner_color_rgba(mp.stdPattern.hnd, C.uint(idx), C.double(r), C.double(g), C.double(b), C.double(a))
 }
 
-func (mp *stdMeshPattern) GetPatchCount() (uint,error) {
+func (mp *stdMeshPattern) GetPatchCount() (uint, error) {
 	var c C.uint
 	status := Status(C.cairo_mesh_pattern_get_patch_count(mp.stdPattern.hnd, &c))
 	if status != StatusSuccess {
@@ -309,7 +311,7 @@ func (mp *stdMeshPattern) GetControlPoint(patch int, path int) ([]float64, error
 	if status != StatusSuccess {
 		return nil, errors.New(status.String())
 	}
-	return []float64{float64(x),float64(y)}, nil
+	return []float64{float64(x), float64(y)}, nil
 }
 
 func (mp *stdMeshPattern) GetCornerColorRgba(patch int, corneridx int) ([]float64, error) {
@@ -318,7 +320,7 @@ func (mp *stdMeshPattern) GetCornerColorRgba(patch int, corneridx int) ([]float6
 	if status != StatusSuccess {
 		return nil, errors.New(status.String())
 	}
-	return []float64{float64(r),float64(g),float64(b),float64(a)}, nil
+	return []float64{float64(r), float64(g), float64(b), float64(a)}, nil
 }
 
 func PatternCreateRgb(r, g, b float64) Pattern {

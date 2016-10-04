@@ -19,7 +19,7 @@ func (impl *CairoSampleImpl) CairoContext() cairo.Cairo {
 }
 
 func GetSampleTypes() []reflect.Type {
-	return []reflect.Type {
+	return []reflect.Type{
 		reflect.TypeOf([]ArcSample{}).Elem(),
 		reflect.TypeOf([]ArcNegativeSample{}).Elem(),
 		reflect.TypeOf([]ClipSample{}).Elem(),

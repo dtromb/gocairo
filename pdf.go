@@ -1,9 +1,9 @@
 package cairo
 
 import (
+	"io"
 	"runtime"
 	"unsafe"
-	"io"
 )
 
 /*
@@ -24,13 +24,13 @@ import (
 		}
 		return 0;
 	}
-	
+
 	#ifdef CAIRO_HAS_PDF_SURFACE
 		int cgo_cairo_has_pdf = 1;
 	#else
 		int cgo_cairo_has_pdf = 0;
 	#endif
-	
+
 	cairo_status_t cgo_cairo_pdf_surface_write_c(void *closure, const unsigned char *data, unsigned int len) {
 		WriteStdPdfSurface(closure,data,len);
 	}
@@ -39,15 +39,16 @@ import (
 */
 import "C"
 
-type PdfVersion uint32 
+type PdfVersion uint32
+
 const (
-	PdfVersion_1_4			PdfVersion	= C.CAIRO_PDF_VERSION_1_4
-	PdfVersion_1_5						= C.CAIRO_PDF_VERSION_1_5
+	PdfVersion_1_4 PdfVersion = C.CAIRO_PDF_VERSION_1_4
+	PdfVersion_1_5            = C.CAIRO_PDF_VERSION_1_5
 )
 
 func PdfGetVersions() []PdfVersion {
 	var versions []PdfVersion
-	for _, v := range []PdfVersion{PdfVersion_1_4,PdfVersion_1_5} {
+	for _, v := range []PdfVersion{PdfVersion_1_4, PdfVersion_1_5} {
 		if C.cgo_cairo_has_pdf_version(C.cairo_pdf_version_t(v)) > 0 {
 			versions = append(versions, v)
 		}
@@ -71,8 +72,8 @@ type PdfSurface interface {
 
 func blessPdfSurface(hnd *C.cairo_surface_t, addRef bool) PdfSurface {
 	ss := stdPdfSurface{}
-	ss.stdSurface = blessSurface(hnd,addRef).(*stdSurface)
-	return &ss;
+	ss.stdSurface = blessSurface(hnd, addRef).(*stdSurface)
+	return &ss
 }
 
 func finalizePdfSurface(ps PdfSurface) {
@@ -91,16 +92,16 @@ func PdfSurfaceCreateForStream(writer io.Writer, width, height float64) PdfSurfa
 		pdfOut: writer,
 	}
 	csurf := C.cairo_pdf_surface_create_for_stream(C.cgo_cairo_pdf_surface_write,
-	                                    			 unsafe.Pointer(ps),
-										 			 C.double(width), C.double(height))
-	ps.stdSurface = blessSurface(csurf,false).(*stdSurface)
+		unsafe.Pointer(ps),
+		C.double(width), C.double(height))
+	ps.stdSurface = blessSurface(csurf, false).(*stdSurface)
 	runtime.SetFinalizer(ps, finalizePdfSurface)
-	return ps						
+	return ps
 }
 
 type stdPdfSurface struct {
 	*stdSurface
-	pdfOut io.Writer 
+	pdfOut io.Writer
 }
 
 func (ps *stdPdfSurface) GetStandardSurface() *stdSurface {
@@ -110,7 +111,6 @@ func (ps *stdPdfSurface) GetStandardSurface() *stdSurface {
 func (ps *stdPdfSurface) Finalize(x interface{}) {
 	ps.pdfOut = nil
 }
-
 
 func (ps *stdPdfSurface) RestrictToVersion(version PdfVersion) {
 	C.cairo_pdf_surface_restrict_to_version(ps.hnd, C.cairo_pdf_version_t(version))

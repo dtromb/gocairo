@@ -2,19 +2,19 @@ package cairo
 
 import (
 	"reflect"
-	"unsafe"
 	"runtime"
+	"unsafe"
 )
 
 /*
 	#cgo LDFLAGS: -lcairo
     #include <cairo/cairo.h>
 	#include <inttypes.h>
-	
+
 	extern cairo_user_data_key_t *cgo_get_cairo_userdata_key(int32_t keyid);
 	extern uint32_t cgo_get_refkey(void *cref);
 	extern void* cgo_get_keyref(uint32_t key);
-	
+
 	void cgo_cairo_userdata_destroy_c(void *ptr) {
 		FreeCairoNotify((cairo_t*)ptr);
 	}
@@ -23,7 +23,7 @@ import (
 import "C"
 
 type RectangleInt struct {
-	X, Y int
+	X, Y          int
 	Width, Height int
 }
 
@@ -32,46 +32,47 @@ type Finalizable interface {
 }
 
 type Status uint32
+
 const (
-	StatusSuccess					Status	= C.CAIRO_STATUS_SUCCESS
-	StatusNoMemory							= C.CAIRO_STATUS_NO_MEMORY
-	StatusInvalidRestore					= C.CAIRO_STATUS_INVALID_RESTORE
-	StatusInvalidPopCount					= C.CAIRO_STATUS_INVALID_POP_GROUP
-	StatusNoCurrentPoint					= C.CAIRO_STATUS_NO_CURRENT_POINT
-	StatusInvalidMatrix						= C.CAIRO_STATUS_INVALID_MATRIX
-	StatusInvalidStatus						= C.CAIRO_STATUS_INVALID_STATUS
-	StatusNullPointer						= C.CAIRO_STATUS_NULL_POINTER
-	StatusInvalidString						= C.CAIRO_STATUS_INVALID_STRING
-	StatusInvalidPathData					= C.CAIRO_STATUS_INVALID_PATH_DATA
-	StatusReadError							= C.CAIRO_STATUS_READ_ERROR
-	StatusWriteError						= C.CAIRO_STATUS_WRITE_ERROR
-	StatusSurfaceFinished					= C.CAIRO_STATUS_SURFACE_FINISHED
-	StatusSurfaceTypeMismatch				= C.CAIRO_STATUS_SURFACE_TYPE_MISMATCH
-	StatusPatternTypeMismatch				= C.CAIRO_STATUS_PATTERN_TYPE_MISMATCH
-	StatusInvalidContent					= C.CAIRO_STATUS_INVALID_CONTENT
-	StatusInvalidFormat						= C.CAIRO_STATUS_INVALID_FORMAT
-	StatusInvalidVisual						= C.CAIRO_STATUS_INVALID_VISUAL
-	StatusFileNotFound						= C.CAIRO_STATUS_FILE_NOT_FOUND
-	StatusInvalidDash						= C.CAIRO_STATUS_INVALID_DASH
-	StatusInvalidDscComment					= C.CAIRO_STATUS_INVALID_DSC_COMMENT
-	StatusInvalidIndex						= C.CAIRO_STATUS_INVALID_INDEX
-	StatusClipNotRepresentable				= C.CAIRO_STATUS_CLIP_NOT_REPRESENTABLE
-	StatusTempFileError						= C.CAIRO_STATUS_TEMP_FILE_ERROR
-	StatusInvalidStride						= C.CAIRO_STATUS_INVALID_STRIDE
-	StatusFontTypeMismatch					= C.CAIRO_STATUS_FONT_TYPE_MISMATCH
-	StatusUserFontImmutable					= C.CAIRO_STATUS_USER_FONT_IMMUTABLE
-	StatusUserFontError						= C.CAIRO_STATUS_USER_FONT_ERROR
-	StatusNegativeCount						= C.CAIRO_STATUS_NEGATIVE_COUNT
-	StatusInvalidClusters					= C.CAIRO_STATUS_INVALID_CLUSTERS
-	StatusInvalidSlant						= C.CAIRO_STATUS_INVALID_SLANT
-	StatusInvalidWeight						= C.CAIRO_STATUS_INVALID_WEIGHT
-	StatusInvalidSize						= C.CAIRO_STATUS_INVALID_SIZE
-	StatusUserFontNotImplemented			= C.CAIRO_STATUS_USER_FONT_NOT_IMPLEMENTED
-	StatusDeviceTypeMismatch				= C.CAIRO_STATUS_DEVICE_TYPE_MISMATCH
-	StatusDeviceError						= C.CAIRO_STATUS_DEVICE_ERROR
-	StatusInvalidMeshConstruction			= C.CAIRO_STATUS_INVALID_MESH_CONSTRUCTION
-	StatusDeviceFinished					= C.CAIRO_STATUS_DEVICE_FINISHED
-	StatusJbig2GlobalMissing				= C.CAIRO_STATUS_JBIG2_GLOBAL_MISSING
+	StatusSuccess                 Status = C.CAIRO_STATUS_SUCCESS
+	StatusNoMemory                       = C.CAIRO_STATUS_NO_MEMORY
+	StatusInvalidRestore                 = C.CAIRO_STATUS_INVALID_RESTORE
+	StatusInvalidPopCount                = C.CAIRO_STATUS_INVALID_POP_GROUP
+	StatusNoCurrentPoint                 = C.CAIRO_STATUS_NO_CURRENT_POINT
+	StatusInvalidMatrix                  = C.CAIRO_STATUS_INVALID_MATRIX
+	StatusInvalidStatus                  = C.CAIRO_STATUS_INVALID_STATUS
+	StatusNullPointer                    = C.CAIRO_STATUS_NULL_POINTER
+	StatusInvalidString                  = C.CAIRO_STATUS_INVALID_STRING
+	StatusInvalidPathData                = C.CAIRO_STATUS_INVALID_PATH_DATA
+	StatusReadError                      = C.CAIRO_STATUS_READ_ERROR
+	StatusWriteError                     = C.CAIRO_STATUS_WRITE_ERROR
+	StatusSurfaceFinished                = C.CAIRO_STATUS_SURFACE_FINISHED
+	StatusSurfaceTypeMismatch            = C.CAIRO_STATUS_SURFACE_TYPE_MISMATCH
+	StatusPatternTypeMismatch            = C.CAIRO_STATUS_PATTERN_TYPE_MISMATCH
+	StatusInvalidContent                 = C.CAIRO_STATUS_INVALID_CONTENT
+	StatusInvalidFormat                  = C.CAIRO_STATUS_INVALID_FORMAT
+	StatusInvalidVisual                  = C.CAIRO_STATUS_INVALID_VISUAL
+	StatusFileNotFound                   = C.CAIRO_STATUS_FILE_NOT_FOUND
+	StatusInvalidDash                    = C.CAIRO_STATUS_INVALID_DASH
+	StatusInvalidDscComment              = C.CAIRO_STATUS_INVALID_DSC_COMMENT
+	StatusInvalidIndex                   = C.CAIRO_STATUS_INVALID_INDEX
+	StatusClipNotRepresentable           = C.CAIRO_STATUS_CLIP_NOT_REPRESENTABLE
+	StatusTempFileError                  = C.CAIRO_STATUS_TEMP_FILE_ERROR
+	StatusInvalidStride                  = C.CAIRO_STATUS_INVALID_STRIDE
+	StatusFontTypeMismatch               = C.CAIRO_STATUS_FONT_TYPE_MISMATCH
+	StatusUserFontImmutable              = C.CAIRO_STATUS_USER_FONT_IMMUTABLE
+	StatusUserFontError                  = C.CAIRO_STATUS_USER_FONT_ERROR
+	StatusNegativeCount                  = C.CAIRO_STATUS_NEGATIVE_COUNT
+	StatusInvalidClusters                = C.CAIRO_STATUS_INVALID_CLUSTERS
+	StatusInvalidSlant                   = C.CAIRO_STATUS_INVALID_SLANT
+	StatusInvalidWeight                  = C.CAIRO_STATUS_INVALID_WEIGHT
+	StatusInvalidSize                    = C.CAIRO_STATUS_INVALID_SIZE
+	StatusUserFontNotImplemented         = C.CAIRO_STATUS_USER_FONT_NOT_IMPLEMENTED
+	StatusDeviceTypeMismatch             = C.CAIRO_STATUS_DEVICE_TYPE_MISMATCH
+	StatusDeviceError                    = C.CAIRO_STATUS_DEVICE_ERROR
+	StatusInvalidMeshConstruction        = C.CAIRO_STATUS_INVALID_MESH_CONSTRUCTION
+	StatusDeviceFinished                 = C.CAIRO_STATUS_DEVICE_FINISHED
+	StatusJbig2GlobalMissing             = C.CAIRO_STATUS_JBIG2_GLOBAL_MISSING
 )
 
 func (st Status) String() string {
@@ -109,7 +110,7 @@ type Cairo interface {
 	GetAntialias() Antialias
 	SetDash(dash []float64, offset float64)
 	GetDashCount() int
-	GetDash() ([]float64,float64)
+	GetDash() ([]float64, float64)
 	SetFillRule(rule FillRule)
 	GetFillRule() FillRule
 	SetLineCap(linecap LineCap)
@@ -145,7 +146,7 @@ type Cairo interface {
 	CopyPage()
 	ShowPage()
 	SetUserData(key string, data interface{})
-	GetUserData(key string) (interface{},bool)
+	GetUserData(key string) (interface{}, bool)
 	///
 	CopyPath() Path
 	CopyPathFlat() Path
@@ -182,7 +183,7 @@ type Cairo interface {
 }
 
 type stdCairo struct {
-	hnd *C.cairo_t
+	hnd        *C.cairo_t
 	userdata_r Reference
 }
 
@@ -209,7 +210,7 @@ func blessCairo(hnd *C.cairo_t, addRef bool) Cairo {
 
 func Create(s Surface) Cairo {
 	if ss, ok := s.(StandardSurface); ok {
-		return blessCairo(C.cairo_create(ss.GetStandardSurface().hnd),false)
+		return blessCairo(C.cairo_create(ss.GetStandardSurface().hnd), false)
 	} else {
 		panic("Create(s) unsupported for non-standard surface arguments")
 	}
@@ -298,7 +299,7 @@ func (sc *stdCairo) GetDashCount() int {
 	return int(C.cairo_get_dash_count(sc.hnd))
 }
 
-func (sc *stdCairo) GetDash() ([]float64,float64) {
+func (sc *stdCairo) GetDash() ([]float64, float64) {
 	var offset C.double
 	dashes := make([]float64, sc.GetDashCount())
 	hdr := (*reflect.SliceHeader)(unsafe.Pointer(&dashes))
@@ -323,7 +324,7 @@ func (sc *stdCairo) GetLineCap() LineCap {
 }
 
 func (sc *stdCairo) SetLineJoin(linejoin LineJoin) {
-	C.cairo_set_line_join(sc.hnd, C.cairo_line_join_t(linejoin)) 
+	C.cairo_set_line_join(sc.hnd, C.cairo_line_join_t(linejoin))
 }
 
 func (sc *stdCairo) GetLineJoin() LineJoin {
@@ -373,7 +374,7 @@ func (sc *stdCairo) ClipPreserve() {
 func (sc *stdCairo) ClipExtents() []float64 {
 	var x1, y1, x2, y2 C.double
 	C.cairo_clip_extents(sc.hnd, &x1, &y1, &x2, &y2)
-	return []float64{float64(x1),float64(y1),float64(x2),float64(y2)}
+	return []float64{float64(x1), float64(y1), float64(x2), float64(y2)}
 }
 
 func (sc *stdCairo) InClip(x, y float64) bool {
@@ -399,7 +400,7 @@ func (sc *stdCairo) FillPreserve() {
 func (sc *stdCairo) FillExtents() []float64 {
 	var x1, y1, x2, y2 C.double
 	C.cairo_fill_extents(sc.hnd, &x1, &y1, &x2, &y2)
-	return []float64{float64(x1),float64(y1),float64(x2),float64(y2)}
+	return []float64{float64(x1), float64(y1), float64(x2), float64(y2)}
 }
 
 func (sc *stdCairo) InFill(x, y float64) bool {
@@ -441,7 +442,7 @@ func (sc *stdCairo) StrokePreserve() {
 func (sc *stdCairo) StrokeExtents() []float64 {
 	var x1, y1, x2, y2 C.double
 	C.cairo_stroke_extents(sc.hnd, &x1, &y1, &x2, &y2)
-	return []float64{float64(x1),float64(y1),float64(x2),float64(y2)}
+	return []float64{float64(x1), float64(y1), float64(x2), float64(y2)}
 }
 
 func (sc *stdCairo) InStroke(x, y float64) bool {
@@ -460,7 +461,7 @@ func (sc *stdCairo) SetUserData(key string, data interface{}) {
 	if sc.userdata_r == nil {
 		// Attempt to load the Go ref table from the C-held ref key.
 		refkey := C.cgo_get_refkey(C.cairo_get_user_data(sc.hnd, C.cgo_get_cairo_userdata_key(GO_DATAKEY_KEY)))
-	 	if refkey != 0 {
+		if refkey != 0 {
 			var ok bool
 			sc.userdata_r, ok = LookupGlobalReference(uint32(refkey))
 			if !ok {
@@ -469,20 +470,20 @@ func (sc *stdCairo) SetUserData(key string, data interface{}) {
 		} else {
 			userdataMap := make(map[string]interface{})
 			sc.userdata_r = MakeGlobalReference(userdataMap)
-			C.cairo_device_set_user_data(sc.hnd, C.cgo_get_cairo_userdata_key(GO_DATAKEY_KEY), 
-			                             C.cgo_get_keyref(C.uint32_t(sc.userdata_r.Key())), C.cgo_cairo_userdata_destroy)
+			C.cairo_device_set_user_data(sc.hnd, C.cgo_get_cairo_userdata_key(GO_DATAKEY_KEY),
+				C.cgo_get_keyref(C.uint32_t(sc.userdata_r.Key())), C.cgo_cairo_userdata_destroy)
 			IncrementGlobalReferenceCount(sc.userdata_r)
 		}
 	}
 	userdata := sc.userdata_r.Ref().(map[string]interface{})
-	userdata[key] = data  
+	userdata[key] = data
 }
 
-func (sc *stdCairo) GetUserData(key string) (interface{},bool) {
+func (sc *stdCairo) GetUserData(key string) (interface{}, bool) {
 	if sc.userdata_r == nil {
 		// Attempt to load the Go ref table from the C-held ref key.
 		refkey := C.cgo_get_refkey(C.cairo_device_get_user_data(sc.hnd, C.cgo_get_cairo_userdata_key(GO_DATAKEY_KEY)))
-	 	if refkey != 0 {
+		if refkey != 0 {
 			var ok bool
 			sc.userdata_r, ok = LookupGlobalReference(uint32(refkey))
 			if !ok {
@@ -498,7 +499,7 @@ func (sc *stdCairo) GetUserData(key string) (interface{},bool) {
 }
 
 func (sc *stdCairo) CopyPath() Path {
-	return blessPath(C.cairo_copy_path(sc.hnd))	
+	return blessPath(C.cairo_copy_path(sc.hnd))
 }
 
 func (sc *stdCairo) CopyPathFlat() Path {
@@ -561,7 +562,7 @@ func (sc *stdCairo) Rectangle(x, y, width, height float64) {
 
 func (sc *stdCairo) GlyphPath(glyphs []Glyph) {
 	hdr := (*reflect.SliceHeader)(unsafe.Pointer(&glyphs))
-	C.cairo_glyph_path(sc.hnd, (*C.cairo_glyph_t)(unsafe.Pointer(hdr.Data)), C.int(hdr.Len)) 
+	C.cairo_glyph_path(sc.hnd, (*C.cairo_glyph_t)(unsafe.Pointer(hdr.Data)), C.int(hdr.Len))
 }
 
 func (sc *stdCairo) TextPath(text string) {
@@ -569,7 +570,7 @@ func (sc *stdCairo) TextPath(text string) {
 }
 
 func (sc *stdCairo) RelCurveTo(dx1, dy1, dx2, dy2, dx3, dy3 float64) {
-	C.cairo_rel_curve_to(sc.hnd, C.double(dx1), C.double(dy1), C.double(dx2), C.double(dy2), C.double(dx3), C.double(dy3))	
+	C.cairo_rel_curve_to(sc.hnd, C.double(dx1), C.double(dy1), C.double(dx2), C.double(dy2), C.double(dx3), C.double(dy3))
 }
 
 func (sc *stdCairo) RelLineTo(dx, dy float64) {
@@ -583,11 +584,11 @@ func (sc *stdCairo) RelMoveTo(dx, dy float64) {
 func (sc *stdCairo) PathExtents() []float64 {
 	var x1, y1, x2, y2 C.double
 	C.cairo_path_extents(sc.hnd, &x1, &y1, &x2, &y2)
-	return []float64{float64(x1),float64(y1),float64(x2),float64(y2)}
+	return []float64{float64(x1), float64(y1), float64(x2), float64(y2)}
 }
 
 func (sc *stdCairo) Translate(x, y float64) {
-	C.cairo_translate(sc.hnd, C.double(x), C.double(y))	
+	C.cairo_translate(sc.hnd, C.double(x), C.double(y))
 }
 
 func (sc *stdCairo) Scale(x, y float64) {
@@ -599,44 +600,44 @@ func (sc *stdCairo) Rotate(t float64) {
 }
 
 func (sc *stdCairo) Transform(m Matrix) {
-	C.cairo_transform(sc.hnd,m.dataref())
+	C.cairo_transform(sc.hnd, m.dataref())
 }
 
 func (sc *stdCairo) SetMatrix(m Matrix) {
-	C.cairo_set_matrix(sc.hnd,m.dataref())
+	C.cairo_set_matrix(sc.hnd, m.dataref())
 }
 
 func (sc *stdCairo) GetMatrix(m Matrix) {
-	C.cairo_get_matrix(sc.hnd,m.dataref())
+	C.cairo_get_matrix(sc.hnd, m.dataref())
 }
 
 func (sc *stdCairo) IdentityMatrix() {
 	C.cairo_identity_matrix(sc.hnd)
 }
 
-func (sc *stdCairo) UserToDevice(x, y float64) (float64,float64) {
+func (sc *stdCairo) UserToDevice(x, y float64) (float64, float64) {
 	xx := x
 	yy := y
 	C.cairo_user_to_device(sc.hnd, (*C.double)(&xx), (*C.double)(&yy))
 	return xx, yy
 }
 
-func (sc *stdCairo) UserToDeviceDistance(dx, dy float64) (float64,float64) {	
-    dxx := dx
+func (sc *stdCairo) UserToDeviceDistance(dx, dy float64) (float64, float64) {
+	dxx := dx
 	dyy := dy
 	C.cairo_user_to_device_distance(sc.hnd, (*C.double)(&dxx), (*C.double)(&dyy))
 	return dxx, dyy
 }
 
-func (sc *stdCairo) DeviceToUser(x, y float64) (float64, float64) {	
+func (sc *stdCairo) DeviceToUser(x, y float64) (float64, float64) {
 	xx := x
 	yy := y
 	C.cairo_device_to_user(sc.hnd, (*C.double)(&xx), (*C.double)(&yy))
 	return xx, yy
 }
 
-func (sc *stdCairo) DeviceToUserDistance(dx, dy float64) (float64, float64) {	
-    dxx := dx
+func (sc *stdCairo) DeviceToUserDistance(dx, dy float64) (float64, float64) {
+	dxx := dx
 	dyy := dy
 	C.cairo_device_to_user_distance(sc.hnd, (*C.double)(&dxx), (*C.double)(&dyy))
 	return dxx, dyy

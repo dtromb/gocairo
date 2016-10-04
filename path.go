@@ -10,19 +10,20 @@ import (
     #include <cairo/cairo-pdf.h>
 	#include <inttypes.h>
 	#include <stdlib.h>
-*/ 
+*/
 import "C"
 
 // XXX - Write path data accessors in C and expose them on this object.
 
 // XXX - Memory management for these object is badly define in the API.   Sort this out.
 
-type PathDataType uint32 
-const (	
-	PathDataTypeMoveTo			PathDataType	= C.CAIRO_PATH_MOVE_TO
-	PathDataTypeLineTo							= C.CAIRO_PATH_LINE_TO
-	PathDataTyoeCurveTo							= C.CAIRO_PATH_CURVE_TO
-	PathDataTypeClosePath						= C.CAIRO_PATH_CLOSE_PATH
+type PathDataType uint32
+
+const (
+	PathDataTypeMoveTo    PathDataType = C.CAIRO_PATH_MOVE_TO
+	PathDataTypeLineTo                 = C.CAIRO_PATH_LINE_TO
+	PathDataTyoeCurveTo                = C.CAIRO_PATH_CURVE_TO
+	PathDataTypeClosePath              = C.CAIRO_PATH_CLOSE_PATH
 )
 
 type Path interface {

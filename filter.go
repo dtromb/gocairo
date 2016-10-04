@@ -9,11 +9,12 @@ package cairo
 import "C"
 
 type Filter uint32
+
 const (
-	FilterFasat				Filter 	= C.CAIRO_FILTER_FAST
-	FilterGood						= C.CAIRO_FILTER_GOOD
-	FilterBest						= C.CAIRO_FILTER_BEST
-	FilterNearest					= C.CAIRO_FILTER_NEAREST
-	FilterBilinear					= C.CAIRO_FILTER_BILINEAR
-	FilterGaussian					= C.CAIRO_FILTER_GAUSSIAN
+	FilterFasat    Filter = C.CAIRO_FILTER_FAST
+	FilterGood            = C.CAIRO_FILTER_GOOD
+	FilterBest            = C.CAIRO_FILTER_BEST
+	FilterNearest         = C.CAIRO_FILTER_NEAREST
+	FilterBilinear        = C.CAIRO_FILTER_BILINEAR
+	FilterGaussian        = C.CAIRO_FILTER_GAUSSIAN
 )

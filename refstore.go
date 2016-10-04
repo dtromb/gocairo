@@ -1,9 +1,9 @@
 package cairo
 
 import (
+	"math/rand"
 	"sync"
 	"time"
-	"math/rand"
 )
 
 type InterfaceRef struct {
@@ -15,16 +15,15 @@ var global_ReferenceStore stdReferenceStore
 func init() {
 	global_ReferenceStore = stdReferenceStore{
 		refs: make(map[uint32]Reference),
-		rng: rand.NewSource(time.Now().UnixNano()),
+		rng:  rand.NewSource(time.Now().UnixNano()),
 	}
 }
-
 
 func MakeGlobalReference(obj interface{}) Reference {
 	return global_ReferenceStore.MakeReference(obj)
 }
 
-func LookupGlobalReference(key uint32) (Reference,bool) {
+func LookupGlobalReference(key uint32) (Reference, bool) {
 	return global_ReferenceStore.LookupReference(key)
 }
 
@@ -36,10 +35,9 @@ func DecrementGlobalReferenceCount(ref Reference) {
 	global_ReferenceStore.DecrementReference(ref)
 }
 
-
 type ReferenceStore interface {
 	MakeReference(obj interface{}) Reference
-	LookupReference(key uint32) (Reference,bool)
+	LookupReference(key uint32) (Reference, bool)
 	IncrementReference(r Reference) bool
 	DecrementReference(r Reference) bool
 }
@@ -50,11 +48,10 @@ type Reference interface {
 	Cleared() bool
 }
 
-
 type stdReferenceStore struct {
 	lock sync.Mutex
 	refs map[uint32]Reference
-	rng rand.Source
+	rng  rand.Source
 }
 
 func (rs *stdReferenceStore) MakeReference(obj interface{}) Reference {
@@ -71,12 +68,12 @@ func (rs *stdReferenceStore) MakeReference(obj interface{}) Reference {
 	ref := &stdReference{
 		key: nkey,
 		ref: obj,
-		rc: 1,
+		rc:  1,
 	}
 	return ref
 }
 
-func (rs *stdReferenceStore) LookupReference(key uint32) (Reference,bool) {
+func (rs *stdReferenceStore) LookupReference(key uint32) (Reference, bool) {
 	rs.lock.Lock()
 	defer rs.lock.Unlock()
 	ref, has := rs.refs[key]
@@ -115,7 +112,7 @@ func (rs *stdReferenceStore) DecrementReference(r Reference) bool {
 
 type stdReference struct {
 	key uint32
-	rc uint32
+	rc  uint32
 	ref interface{}
 }
 
@@ -129,7 +126,7 @@ func (r *stdReference) Key() uint32 {
 
 func (r *stdReference) Incref() {
 	r.rc += 1
-} 
+}
 
 func (r *stdReference) Cleared() bool {
 	return r.rc == 0

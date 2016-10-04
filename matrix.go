@@ -1,10 +1,9 @@
 package cairo
 
 import (
-	"unsafe"
 	"reflect"
+	"unsafe"
 )
-
 
 /*
 	#cgo LDFLAGS: -lcairo
@@ -17,7 +16,7 @@ import "C"
 type Matrix []float64
 
 func NewMatrix() Matrix {
-	return Matrix{0,0,0,0,0,0}
+	return Matrix{0, 0, 0, 0, 0, 0}
 }
 
 func (m Matrix) dataref() *C.cairo_matrix_t {
@@ -27,19 +26,19 @@ func (m Matrix) dataref() *C.cairo_matrix_t {
 }
 
 func (m Matrix) Init(xx, yx, xy, yy, x0, y0 float64) {
-	copy(m[:],[]float64{xx,yx,xy,yy,x0,y0})
+	copy(m[:], []float64{xx, yx, xy, yy, x0, y0})
 }
 
 func (m Matrix) InitIdentity() {
-	copy(m[:],[]float64{1,0,0,1,0,0})
+	copy(m[:], []float64{1, 0, 0, 1, 0, 0})
 }
 
 func (m Matrix) InitTranslate(x, y float64) {
-	copy(m[:],[]float64{0,0,0,0,x,y})
+	copy(m[:], []float64{0, 0, 0, 0, x, y})
 }
 
 func (m Matrix) InitScale(x, y float64) {
-	copy(m[:],[]float64{x,0,0,y,0,0})
+	copy(m[:], []float64{x, 0, 0, y, 0, 0})
 }
 
 func (m Matrix) InitRotate(rad float64) {
@@ -70,16 +69,16 @@ func MatrixMultiply(r, a, b Matrix) {
 	C.cairo_matrix_multiply(r.dataref(), a.dataref(), b.dataref())
 }
 
-func (m Matrix) TransformDistance(x, y float64) (float64,float64) {
+func (m Matrix) TransformDistance(x, y float64) (float64, float64) {
 	cx := C.double(x)
 	cy := C.double(y)
-	C.cairo_matrix_transform_distance(m.dataref(),&cx,&cy)
+	C.cairo_matrix_transform_distance(m.dataref(), &cx, &cy)
 	return float64(cx), float64(cy)
 }
 
-func (m Matrix) TransformPoint(x, y float64) (float64,float64) {
+func (m Matrix) TransformPoint(x, y float64) (float64, float64) {
 	cx := C.double(x)
 	cy := C.double(y)
-	C.cairo_matrix_transform_point(m.dataref(),&cx,&cy)
+	C.cairo_matrix_transform_point(m.dataref(), &cx, &cy)
 	return float64(cx), float64(cy)
 }
