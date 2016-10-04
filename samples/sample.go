@@ -29,5 +29,6 @@ func GetSampleTypes() []reflect.Type {
 		reflect.TypeOf([]DashSample{}).Elem(),
 		reflect.TypeOf([]FillAndStroke2Sample{}).Elem(),
 		reflect.TypeOf([]FillStyleSample{}).Elem(),
+		reflect.TypeOf([]GradientSample{}).Elem(),
 	}
 }

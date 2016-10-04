@@ -320,3 +320,36 @@ func (mp *stdMeshPattern) GetCornerColorRgba(patch int, corneridx int) ([]float6
 	}
 	return []float64{float64(r),float64(g),float64(b),float64(a)}, nil
 }
+
+func PatternCreateRgb(r, g, b float64) Pattern {
+	cref := C.cairo_pattern_create_rgb(C.double(r), C.double(g), C.double(b))
+	return blessPattern(cref, false)
+}
+
+func PatternCreateRgba(r, g, b, a float64) Pattern {
+	cref := C.cairo_pattern_create_rgba(C.double(r), C.double(g), C.double(b), C.double(a))
+	return blessPattern(cref, false)
+}
+
+func PatternCreateForSurface(s Surface) Pattern {
+	if ss, ok := s.(StandardSurface); ok {
+		cref := C.cairo_pattern_create_for_surface(ss.GetStandardSurface().hnd)
+		return blessPattern(cref, false)
+	}
+	panic("PatternCreateForSurface(s) unimplemented for non-standard surface arguments")
+}
+
+func PatternCreateLinear(x0, y0, x1, y1 float64) Pattern {
+	cref := C.cairo_pattern_create_linear(C.double(x0), C.double(y0), C.double(x1), C.double(y1))
+	return blessPattern(cref, false)
+}
+
+func PatternCreateRadial(cx0, cy0, r0, cx1, cy1, r1 float64) Pattern {
+	cref := C.cairo_pattern_create_radial(C.double(cx0), C.double(cy0), C.double(r0), C.double(cx1), C.double(cy1), C.double(r1))
+	return blessPattern(cref, false)
+}
+
+func PatternCreateMesh() Pattern {
+	cref := C.cairo_pattern_create_mesh()
+	return blessPattern(cref, false)
+}
