@@ -239,6 +239,10 @@ func (f *StdFontFace) SetUserData(key string, data interface{}) {
 	userdata[key] = data
 }
 
+func (f *StdFontFace) Hnd() uintptr {
+	return uintptr(unsafe.Pointer(f.hnd))
+}
+
 func (f *StdFontFace) GetUserData(key string) (interface{}, bool) {
 	if f.userdata_r == nil {
 		// Attempt to load the Go ref table from the C-held ref key.
@@ -348,19 +352,19 @@ func (ssf *stdScaledFont) GetFontOptions() FontOptions {
 
 func (ssf *stdScaledFont) GetFontMatrix() Matrix {
 	matrix := NewMatrix()
-	C.cairo_scaled_font_get_font_matrix(ssf.hnd, matrix.dataref())
+	C.cairo_scaled_font_get_font_matrix(ssf.hnd, matrix.DataRef())
 	return matrix
 }
 
 func (ssf *stdScaledFont) GetCtm() Matrix {
 	matrix := NewMatrix()
-	C.cairo_scaled_font_get_ctm(ssf.hnd, matrix.dataref())
+	C.cairo_scaled_font_get_ctm(ssf.hnd, matrix.DataRef())
 	return matrix
 }
 
 func (ssf *stdScaledFont) GetScaleMatrix() Matrix {
 	matrix := NewMatrix()
-	C.cairo_scaled_font_get_scale_matrix(ssf.hnd, matrix.dataref())
+	C.cairo_scaled_font_get_scale_matrix(ssf.hnd, matrix.DataRef())
 	return matrix
 }
 

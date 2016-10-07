@@ -138,3 +138,10 @@ type CharMap interface {
 	PlatformId() uint16
 	EncodingId() uint16
 }
+
+func UnsafeBlessFtFace(hnd uintptr, addRef bool) FtFace {
+	if global_UnsafeBlessFtFace == nil {
+		panic("UnsafeBlessFtFace() unimplemented")
+	}
+	return global_UnsafeBlessFtFace(hnd,addRef)
+}

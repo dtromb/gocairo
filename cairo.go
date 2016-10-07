@@ -31,6 +31,10 @@ type Finalizable interface {
 	Finalize(x interface{})
 }
 
+type CPeer interface {
+	Hnd() uintptr
+}
+
 type Status uint32
 
 const (
@@ -74,6 +78,22 @@ const (
 	StatusDeviceFinished                 = C.CAIRO_STATUS_DEVICE_FINISHED
 	StatusJbig2GlobalMissing             = C.CAIRO_STATUS_JBIG2_GLOBAL_MISSING
 )
+
+// XXX - This stuff is horrible.  Go's no-package-cycle rule makes life miserable.
+var global_UnsafeBlessFtFace func(uintptr,bool) FtFace = nil
+func RegisterSubordinate(name string, obj interface{}) {
+	switch(name) {
+		case "unsafe-bless-ft-face": {
+			var ok bool
+			if global_UnsafeBlessFtFace, ok = obj.(func(uintptr,bool)FtFace); !ok {
+				panic("incorrect type for UnsafeBlessFtFace() during registration")
+			}
+		}
+		default: {
+			panic("unknown subordinate name")
+		}
+	}
+}
 
 func (st Status) String() string {
 	return C.GoString(C.cairo_status_to_string(C.cairo_status_t(st)))
@@ -600,15 +620,15 @@ func (sc *stdCairo) Rotate(t float64) {
 }
 
 func (sc *stdCairo) Transform(m Matrix) {
-	C.cairo_transform(sc.hnd, m.dataref())
+	C.cairo_transform(sc.hnd, m.DataRef())
 }
 
 func (sc *stdCairo) SetMatrix(m Matrix) {
-	C.cairo_set_matrix(sc.hnd, m.dataref())
+	C.cairo_set_matrix(sc.hnd, m.DataRef())
 }
 
 func (sc *stdCairo) GetMatrix(m Matrix) {
-	C.cairo_get_matrix(sc.hnd, m.dataref())
+	C.cairo_get_matrix(sc.hnd, m.DataRef())
 }
 
 func (sc *stdCairo) IdentityMatrix() {

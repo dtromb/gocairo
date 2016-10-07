@@ -199,12 +199,12 @@ func (sp *stdPattern) GetFilter() Filter {
 }
 
 func (sp *stdPattern) SetMatrix(matrix Matrix) {
-	C.cairo_pattern_set_matrix(sp.hnd, matrix.dataref())
+	C.cairo_pattern_set_matrix(sp.hnd, matrix.DataRef())
 }
 
 func (sp *stdPattern) GetMatrix() Matrix {
 	m := NewMatrix()
-	C.cairo_pattern_get_matrix(sp.hnd, m.dataref())
+	C.cairo_pattern_get_matrix(sp.hnd, m.DataRef())
 	return m
 }
 

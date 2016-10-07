@@ -1,6 +1,7 @@
 package freetype
 
 import (
+	"unsafe"
 	cairo "github.com/dtromb/gocairo"
 	"github.com/dtromb/gocairo/fontconfig"
 )
@@ -31,6 +32,23 @@ type FtFont interface {
 type stdFtFont struct {
 	cairo.StdFontFace
 	ftFace *stdFtFace
+}
+
+func (sff *stdFtFace) Hnd() uintptr {
+	return uintptr(unsafe.Pointer(sff.hnd))
+}
+
+func blessFtFace(hnd C.FT_Face, addRef bool) *stdFtFace {
+	panic("blessFtFace() unimplemented")
+}
+
+// XXX -  Yucky.   Maybe someday, the Go authors will see the wisdom of relaxing
+//  	  the oppressive no-package-cycles rule.  =/
+func UnsafeBlessFtFace(hnd uintptr, addRef bool) cairo.FtFace {
+	return blessFtFace(C.FT_Face(unsafe.Pointer(hnd)), addRef)
+}
+func init() {
+	cairo.RegisterSubordinate("unsafe-bless-ft-face", UnsafeBlessFtFace)
 }
 
 // cairo_font_face_t *cairo_ft_font_face_create_for_ft_face (FT_Face face, int load_flags);
