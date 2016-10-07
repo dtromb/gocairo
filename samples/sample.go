@@ -36,5 +36,8 @@ func GetSampleTypes() []reflect.Type {
 		reflect.TypeOf([]RoundedRectangleSample{}).Elem(),
 		reflect.TypeOf([]SetLineCapSample{}).Elem(),
 		reflect.TypeOf([]SetLineJoinSample{}).Elem(),
+		reflect.TypeOf([]TextSample{}).Elem(),
+		reflect.TypeOf([]TextAlignCenterSample{}).Elem(),
+		reflect.TypeOf([]TextExtentsSample{}).Elem(),
 	}
 }
