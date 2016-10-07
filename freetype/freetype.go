@@ -1,9 +1,9 @@
 package freetype
 
 import (
-	"unsafe"
 	cairo "github.com/dtromb/gocairo"
 	"github.com/dtromb/gocairo/fontconfig"
+	"unsafe"
 )
 
 /*

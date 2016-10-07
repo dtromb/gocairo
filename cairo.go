@@ -80,16 +80,19 @@ const (
 )
 
 // XXX - This stuff is horrible.  Go's no-package-cycle rule makes life miserable.
-var global_UnsafeBlessFtFace func(uintptr,bool) FtFace = nil
+var global_UnsafeBlessFtFace func(uintptr, bool) FtFace = nil
+
 func RegisterSubordinate(name string, obj interface{}) {
-	switch(name) {
-		case "unsafe-bless-ft-face": {
+	switch name {
+	case "unsafe-bless-ft-face":
+		{
 			var ok bool
-			if global_UnsafeBlessFtFace, ok = obj.(func(uintptr,bool)FtFace); !ok {
+			if global_UnsafeBlessFtFace, ok = obj.(func(uintptr, bool) FtFace); !ok {
 				panic("incorrect type for UnsafeBlessFtFace() during registration")
 			}
 		}
-		default: {
+	default:
+		{
 			panic("unknown subordinate name")
 		}
 	}
@@ -200,6 +203,24 @@ type Cairo interface {
 	UserToDeviceDistance(dx, dy float64) (float64, float64)
 	DeviceToUser(x, y float64) (float64, float64)
 	DeviceToUserDistance(dx, dy float64) (float64, float64)
+	//
+	SelectFontFace(face string, slant FontSlant, weight FontWeight)
+	SetFontSize(size float64)
+	SetFontMatrix(matrix Matrix)
+	GetFontMatrix() Matrix
+	SetFontOptions(opts FontOptions)
+	GetFontOptions() FontOptions
+	SetFontFace(face FontFace)
+	GetFontFace() FontFace
+	SetScaledFont(font ScaledFont)
+	GetScaledFont() ScaledFont
+	ShowText(str string)
+	ShowGlyphs(glyphs []Glyph)
+	ShowTextGlyphs(text string, glyphs GlyphString)
+	FontExtents() FontExtents
+	TextExtents(str string) TextExtents
+	GlyphExtents(glyphs []Glyph) TextExtents
+	ToyFontFaceCreate(face string, slant FontSlant, weight FontWeight) ToyFontFace
 }
 
 type stdCairo struct {

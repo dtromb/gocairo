@@ -99,6 +99,22 @@ import (
 		return &array[index];
 	}
 
+	void cgo_cairo_init_glyph(cairo_glyph_t *glyph, int index, double x, double y) {
+		glyph->index = index;
+		glyph->x = x;
+		glyph->y = y;
+	}
+
+	void cgo_init_glyph_array(cairo_glyph_t *glyphs, int i, int index, double x, double y) {
+		glyphs[i].index = index;
+		glyphs[i].x = x;
+		glyphs[i].y = y;
+	}
+
+	void cgo_init_text_cluster_array(cairo_text_cluster_t *cluster, int i, int num_bytes, int num_glyphs) {
+		cluster[i].num_bytes = num_bytes;
+		cluster[i].num_glyphs = num_glyphs;
+	}
 */
 import "C"
 
@@ -118,6 +134,28 @@ type FontFace interface {
 	SetUserData(key string, data interface{})
 	GetUserData(key string) (interface{}, bool)
 }
+
+type ToyFontFace interface {
+	FontFace
+	GetFamily() string
+	GetSlant() FontSlant
+	GetWeight() FontWeight
+}
+
+type FontSlant uint32
+
+const (
+	FontSlantNormal  FontSlant = C.CAIRO_FONT_SLANT_NORMAL
+	FontSlantItalic            = C.CAIRO_FONT_SLANT_ITALIC
+	FontSlantOblique           = C.CAIRO_FONT_SLANT_OBLIQUE
+)
+
+type FontWeight uint32
+
+const (
+	FontWeightNormal FontWeight = C.CAIRO_FONT_WEIGHT_NORMAL
+	FontWeightBold              = C.CAIRO_FONT_WEIGHT_BOLD
+)
 
 type ClusterFlags uint32
 
@@ -520,6 +558,27 @@ func destroyGlyphString(gs GlyphString) {
 	}
 }
 
+func importGlyphString(gs GlyphString) *stdGlyphString {
+	if sgs, ok := gs.(*stdGlyphString); ok {
+		return sgs
+	}
+	sgs := &stdGlyphString{}
+	sgs.numClusters = gs.NumClusters()
+	sgs.numGlyphs = gs.NumGlyphs()
+	sgs.glyphs = C.cairo_glyph_allocate(C.int(sgs.numGlyphs))
+	sgs.clusters = C.cairo_text_cluster_allocate(C.int(sgs.numClusters))
+	for i := 0; i < int(gs.NumGlyphs()); i++ {
+		g := gs.Glyph(i)
+		C.cgo_init_glyph_array(sgs.glyphs, C.int(i), C.int(g.Index()), C.double(g.X()), C.double(g.Y()))
+	}
+	for i := 0; i < int(gs.NumClusters()); i++ {
+		c := gs.Cluster(i)
+		C.cgo_init_text_cluster_array(sgs.clusters, C.int(i), C.int(c.NumBytes()), C.int(c.NumGlyphs()))
+	}
+	runtime.SetFinalizer(sgs, destroyGlyphString)
+	return sgs
+}
+
 func (sgs *stdGlyphString) NumGlyphs() uint32 {
 	return sgs.numGlyphs
 }
@@ -570,4 +629,143 @@ func (sgs *stdGlyphString) GetClusters(buf []TextCluster, offset, length int) {
 	for k := offset; k < offset+length; k++ {
 		buf[k-offset] = sgs.Cluster(k)
 	}
+}
+
+func (ctx *stdCairo) SelectFontFace(face string, slant FontSlant, weight FontWeight) {
+	C.cairo_select_font_face(ctx.hnd, C.CString(face), C.cairo_font_slant_t(slant), C.cairo_font_weight_t(weight))
+}
+
+func (ctx *stdCairo) SetFontSize(size float64) {
+	C.cairo_set_font_size(ctx.hnd, C.double(size))
+}
+
+func (ctx *stdCairo) SetFontMatrix(matrix Matrix) {
+	C.cairo_set_font_matrix(ctx.hnd, matrix.DataRef())
+}
+
+func (ctx *stdCairo) GetFontMatrix() Matrix {
+	matrix := NewMatrix()
+	C.cairo_get_font_matrix(ctx.hnd, matrix.DataRef())
+	return matrix
+}
+
+func (ctx *stdCairo) SetFontOptions(opts FontOptions) {
+	if sfo, ok := opts.(*stdFontOptions); ok {
+		C.cairo_set_font_options(ctx.hnd, sfo.hnd)
+	} else {
+		panic("stdCairo.SetFontOptions(opts) unimplemented for non-standard font options arguments")
+	}
+}
+
+func (ctx *stdCairo) GetFontOptions() FontOptions {
+	opts := NewFontOptions().(*stdFontOptions)
+	C.cairo_get_font_options(ctx.hnd, opts.hnd)
+	return opts
+}
+
+func (ctx *stdCairo) SetFontFace(face FontFace) {
+	if cp, ok := face.(CPeer); ok {
+		hnd := (*C.cairo_font_face_t)(unsafe.Pointer(cp.Hnd()))
+		C.cairo_set_font_face(ctx.hnd, hnd)
+	} else {
+		panic("FontFace implementation did not have a C language peer")
+	}
+}
+
+func (ctx *stdCairo) GetFontFace() FontFace {
+	return blessFontFace(C.cairo_get_font_face(ctx.hnd), true)
+}
+
+func (ctx *stdCairo) SetScaledFont(font ScaledFont) {
+	if ssf, ok := font.(*stdScaledFont); ok {
+		C.cairo_set_scaled_font(ctx.hnd, ssf.hnd)
+	} else {
+		panic("stdCairo.SetScaledFont(font) unimplemented for non-standard scaled font arguments")
+	}
+}
+
+func (ctx *stdCairo) GetScaledFont() ScaledFont {
+	return blessScaledFont(C.cairo_get_scaled_font(ctx.hnd), true)
+}
+
+func (ctx *stdCairo) ShowText(str string) {
+	C.cairo_show_text(ctx.hnd, C.CString(str))
+}
+
+func (ctx *stdCairo) ShowGlyphs(glyphs []Glyph) {
+	if len(glyphs) == 0 {
+		return
+	}
+	sglyphs := make([]C.cairo_glyph_t, len(glyphs))
+	for i, g := range glyphs {
+		if sg, ok := g.(*stdGlyph); ok {
+			sglyphs[i] = sg.glyph
+		} else {
+			C.cgo_cairo_init_glyph(&sglyphs[i], C.int(g.Index()), C.double(g.X()), C.double(g.Y()))
+		}
+	}
+	hdr := *(*reflect.SliceHeader)(unsafe.Pointer(&sglyphs))
+	C.cairo_show_glyphs(ctx.hnd, (*C.cairo_glyph_t)(unsafe.Pointer(hdr.Data)), C.int(hdr.Len))
+}
+
+func (ctx *stdCairo) ShowTextGlyphs(text string, glyphs GlyphString) {
+	var sgs *stdGlyphString
+	var ok bool
+	if sgs, ok = glyphs.(*stdGlyphString); !ok {
+		sgs = importGlyphString(glyphs)
+	}
+	C.cairo_show_text_glyphs(ctx.hnd, C.CString(text), C.int(len(text)),
+		sgs.glyphs, C.int(sgs.numGlyphs),
+		sgs.clusters, C.int(sgs.numClusters),
+		C.cairo_text_cluster_flags_t(sgs.clusterFlags))
+}
+
+func (ctx *stdCairo) FontExtents() FontExtents {
+	exts := stdFontExtents{}
+	C.cairo_font_extents(ctx.hnd, &exts.extents)
+	return &exts
+}
+
+func (ctx *stdCairo) TextExtents(str string) TextExtents {
+	exts := stdTextExtents{}
+	C.cairo_text_extents(ctx.hnd, C.CString(str), &exts.extents)
+	return &exts
+}
+
+func (ctx *stdCairo) GlyphExtents(glyphs []Glyph) TextExtents {
+	exts := stdTextExtents{}
+	sglyphs := make([]C.cairo_glyph_t, len(glyphs))
+	for i, g := range glyphs {
+		if sg, ok := g.(*stdGlyph); ok {
+			sglyphs[i] = sg.glyph
+		} else {
+			C.cgo_cairo_init_glyph(&sglyphs[i], C.int(g.Index()), C.double(g.X()), C.double(g.Y()))
+		}
+	}
+	hdr := *(*reflect.SliceHeader)(unsafe.Pointer(&sglyphs))
+	C.cairo_glyph_extents(ctx.hnd, (*C.cairo_glyph_t)(unsafe.Pointer(hdr.Data)), C.int(hdr.Len), &exts.extents)
+	return &exts
+}
+
+type stdToyFontFace struct {
+	StdFontFace
+}
+
+func (ctx *stdCairo) ToyFontFaceCreate(face string, slant FontSlant, weight FontWeight) ToyFontFace {
+	hnd := C.cairo_toy_font_face_create(C.CString(face), C.cairo_font_slant_t(slant), C.cairo_font_weight_t(weight))
+	stf := &stdToyFontFace{StdFontFace: StdFontFace{hnd: hnd}}
+	blessFontFace(stf.hnd, true) // We add a ref because the return value here is ignored and will finalize...
+	return stf
+}
+
+func (stf *stdToyFontFace) GetFamily() string {
+	return C.GoString(C.cairo_toy_font_face_get_family(stf.hnd))
+}
+
+func (stf *stdToyFontFace) GetSlant() FontSlant {
+	return FontSlant(C.cairo_toy_font_face_get_slant(stf.hnd))
+}
+
+func (stf *stdToyFontFace) GetWeight() FontWeight {
+	return FontWeight(C.cairo_toy_font_face_get_weight(stf.hnd))
 }

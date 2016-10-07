@@ -143,5 +143,5 @@ func UnsafeBlessFtFace(hnd uintptr, addRef bool) FtFace {
 	if global_UnsafeBlessFtFace == nil {
 		panic("UnsafeBlessFtFace() unimplemented")
 	}
-	return global_UnsafeBlessFtFace(hnd,addRef)
+	return global_UnsafeBlessFtFace(hnd, addRef)
 }
