@@ -9,7 +9,7 @@ and with it you can create PDFs, images, SVG graphics, or application client gra
 interface.
 
 See the [libcairo manual](https://www.cairographics.org/manual) for documentation and have a look at
-the [samples](https://github.com/dtromb/gocairo/samples) to get a feel for how the API conventions
+the [samples](https://github.com/dtromb/gocairo/tree/master/samples) to get a feel for how the API conventions
 work.
 
-A lot of functionality is already implemented and usable now.  See the [TODO](https://github.com/dtromb/gocairo/TODO.md) for a list of what's missing.
+A lot of functionality is already implemented and usable now.  See the [TODO](https://github.com/dtromb/gocairo/tree/master/TODO.md) for a list of what's missing.
